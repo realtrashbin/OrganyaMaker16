@@ -6,11 +6,10 @@ Made some error messages appear in normal textboxes again.
 Disabled MIDI Export, it won't work because MIDI supports ONLY 16 channels and not 32.
 
 	Goals:
-			Create Multi-delete function
+			Finish Encode feature for saving.
 
 			Add export to FT2 XM feature since it has 32 Tracks.
 			(Remember the one Clownancy made.)
 
-			Fix WAV export to allow 32 track output.
 
 
