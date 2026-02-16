@@ -1,11 +1,12 @@
 #include "TrackFlag.h"
 
+#include <string>
+#include <string.h>
+#include <stdio.h>
 #include "Setting.h"
 #include "OrgData.h"
 #include "DefOrg.h"
 #include "rxoFunction.h"
-#include <string>
-#include <stdio.h>
 
 MUSICINFO mus;
 
@@ -44,8 +45,7 @@ BOOL OrgData::TrackFlag(void) //Used for ORG-16
 int binTrackCode(char* str)
 {
 
-	int i;
-	i = 0;
+	int i=0;
 	switch ((char) *str) //Credits to Mr. Kryzstof Kudlak; I would've never figured out it should have been (char) *str instead of anything else.
 	{
 	case 'Q':
@@ -91,5 +91,25 @@ int binTrackCode(char* str)
 	}
 	
 	return i;
+}
+
+void TitlebarRefresh(void)
+{
+	std::string Ext(mus_file);
+	if (org_data.TrackFlag() && strstr(mus_file, "org16") == NULL)
+	{
+		strcpy(mus_file, Ext.replace(Ext.find_last_of("o"), Ext.find_last_of("g"), "org16").c_str());
+	}
+	else if (!org_data.TrackFlag() && strstr(mus_file, "org16") != NULL)
+	{
+		strcpy(mus_file, Ext.replace(Ext.find_last_of("o"), Ext.find_last_of("6"), "org\0\0").c_str());
+	}
+}
+
+void NSO(void) //NonStandardOrganya //Don't play false ORGS!
+{
+	PlaySound("MENU", GetModuleHandle(NULL), SND_ASYNC | SND_RESOURCE);
+	MessageBox(NULL, "A fatal error has occurred. The program will now exit.", "SOMEBODY'S TOUCHING MY SPAGHET!!", MB_OK | MB_ICONERROR);
+	abort();
 }
 

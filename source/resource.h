@@ -737,7 +737,7 @@
 #define IDM_RECENT0                     40133
 #define IDM_RECENT_CLEAR                40134
 #define ID_MENUITEM40135                40135
-#define ID_ACCEL40136                   40136
+#define ID_AC_SPACE                     40136
 #define ID_AC_LOAD_MOST_RECENT          40137
 #define IDM_STOPNOWALL                  40138
 #define IDM_DRAGMODE                    40139
@@ -845,7 +845,7 @@
 #define IDM_AUTOLOADPVI                 40255
 #define IDM_DUMMY                       40256
 #define IDM_DLGSWAP                     40257
-#define IDM_EXPORT_MIDI                 40259
+#define IDM_EXPORT_XM					40259
 #define ID_AC_DLG_SWAP                  40260
 #define ID_EXPORT                       40262
 #define ID_AC_MIDI                      40264
@@ -883,7 +883,6 @@
 #define ID_AC_WAV                       40298
 #define IDM_DLGWAVEDBS                  40299
 #define IDM_DCLEN						40300
-#define ID_AC_DLGMUL_DELETE				40301
 #define ID_AC_CS1						40400
 #define ID_AC_CS2						40401
 #define ID_AC_CS3						40402
@@ -908,6 +907,9 @@
 #define ID_AC_CY						40421
 #define ID_AC_CU						40422
 #define ID_AC_CI						40423
+#define ID_AC_MENUSAVEENCODE			40424
+#define IDM_MENUSAVEENCODE				40425
+#define ID_AC_MULDELETE					40426
 
 // Next default values for new objects
 // 

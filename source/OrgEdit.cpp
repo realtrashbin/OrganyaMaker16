@@ -916,7 +916,7 @@ BOOL OrgData::SwapTrack(NOTECOPY *pc)
 	memcpy(&info.tdata[ pc->track1 ], &info.tdata[ pc->track2 ], sizeof(TRACKDATA));
 	memcpy(&info.tdata[ pc->track2 ], &tmp, sizeof(TRACKDATA));
 
-	if (pc->track1 / 8 != pc->track2 / 8) { // crash fix
+	if (pc->track1 / MAXMELODY != pc->track2 / MAXMELODY) { // crash fix
 		info.tdata[pc->track1].wave_no = w1;
 		info.tdata[pc->track2].wave_no = w2;
 	}

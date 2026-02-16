@@ -284,7 +284,7 @@ void S_SetOrganyaTimer(unsigned short timer)
 	ma_mutex_lock(&organya_mutex);
 
 	organya_timer = timer;
-	organya_countdown = 0;
+	organya_countdown = 1;
 
 	ma_mutex_unlock(&organya_mutex);
 }
@@ -554,7 +554,7 @@ void ChangeSoundPan(int no, long pan)//512‚ªMAX‚Å256‚ªÉ°ÏÙ
 
 
 OCTWAVE oct_wave[8] = {
-	{256,  1, 4},//0 Oct
+	{256,  1, 4},//Wave Size, oct par and oct size
 	{256,  2, 8},//1 Oct
 	{128,  4, 12},//2 Oct
 	{128,  8, 16},//3 Oct

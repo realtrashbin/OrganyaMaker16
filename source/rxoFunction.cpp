@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include "Filer.h"
 #include <string.h>
+#include <string>
 
 #include "Sound.h"
 #include "Timer.h"
@@ -39,7 +40,6 @@ MEMORYSTATUS rMem ;
 //GlobalMemoryStatus( &Mem ) ;
 
 extern void SetModified(bool mod);
-
 extern HWND hDlgTrack;
 extern int mute_name[MAXTRACK];
 extern char timer_sw;
@@ -662,6 +662,7 @@ void ReplaseUndo()
 
 void SetUndo()
 {
+
 	if(org_data.SetUndoData()>0){ //セットし、もし、メニューが灰色表示なら濃くする
 		HMENU hMenu;
 		hMenu=GetMenu(hWnd);

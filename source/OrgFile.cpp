@@ -1,22 +1,28 @@
 #include <string.h>
-#include "Setting.h"
-#include "OrgData.h"
+#include <atlstr.h>
 #include <stdio.h>
 #include "Sound.h"
 #include "resource.h"
 #include "Scroll.h"
 #include "rxoFunction.h"
+#include "TrackFlag.h"
+#include "OrgData.h"
+#include "Setting.h"
 
 //ORGMAKER Checks these in files, don't mess with them.
-char music_file[MAX_PATH]; //NewData
 char mus_file[MAX_PATH]; //NewData.org
+
 char pass[7] = "Org-01"; //Base Format
 char pass2[7] = "Org-02";//Pipi
 char pass3[7] = "Org-03";//New Drams
 
 char pass4[7] = "Org-16";//16 Tracks
-bool OrgFileType; //Checks if it's ORG or ORG-16
-extern bool ExtFlag;
+
+char passXX[7] = "Org-XX"; //16 & Encode
+char passxx[7] = "Org-xx"; //8 & Encode
+
+char ver = 0;
+
 
 //Important Structures for how ORGMAKER works.
 typedef struct {
@@ -26,12 +32,16 @@ typedef struct {
 	unsigned char volume;//volume of note, max is 255.
 	unsigned char pan;//The pan, 12 for right, 6 for center and 0 for left.
 }ORGANYANOTE; //Structure of Notes
+
+
 typedef struct {
 	unsigned short freq;//Chours of note(1000 = Default)
 	unsigned char wave_no;//The Waveform the TRACK is using
-	unsigned char pipi;//》data[i].pipi = 1; pipi is being used.
+	unsigned char pipi;//data[i].pipi = 1; pipi is being used.
 	unsigned short note_num;//Number of notes.
 }ORGANYATRACK; //Structure of Tracks and Drams
+
+
 typedef struct {
 	signed short wait; //Speed of ORG
 	unsigned char line; //Beat (For time signature)
@@ -40,6 +50,8 @@ typedef struct {
 	long end_x;//End of repeat segment.
 	ORGANYATRACK tdata[MAXTRACK]; //TRACKS
 }ORGANYADATA; //Structure of an ORG-16 File
+
+
 typedef struct {
 	signed short wait; //Speed of ORG
 	unsigned char line; //Beat (For time signature)
@@ -49,8 +61,10 @@ typedef struct {
 	ORGANYATRACK tdata[16]; //TRACKS
 }ORGDATAEIGHT; //Structure of an ORG File
 
-ORGANYADATA orgdat;
-ORGDATAEIGHT eightdat;
+ORGANYADATA orgdat{}; //16 Track Data
+ORGDATAEIGHT eightdat{}; //8 Track Data
+
+
 //Gets the amount of Notes and can copy them?
 unsigned short OrgData::GetNoteNumber(char track,NOTECOPY *nc)
 {
@@ -81,6 +95,55 @@ unsigned short OrgData::GetNoteNumber(char track,NOTECOPY *nc)
 	}
 }
 
+/*
+bool OrganyaEncode(void) //Stolen from Cave Editor... Probably not a good idea.
+{
+	int i, j;
+	int size;
+	CString buffer;
+
+	char diff;
+	scriptControl.GetTextRange(0, scriptControl.GetTextLength(), buffer);
+
+	i = 0;
+	//this adds back in the new line carriage return pair that's removed when editing
+	while (i >= 0 && i < buffer.GetLength())
+	{
+		j = buffer.Find(13, i) + 2;
+		if (j < i)
+			break;
+		else
+			i = j;
+		if (buffer[i - 1] != 10)
+			buffer.Insert(i - 1, 10);
+	}
+	i = buffer.Find(13, i);
+	diff = buffer[buffer.Find(13, 0) + 1];
+
+	size = buffer.GetLength();
+
+
+	//resize string to hold entire script
+	if (scriptText != NULL)
+		delete[] scriptText;
+	scriptText = new unsigned char[size + 1];//+1 for the terminating character
+
+	strcpy((char*)scriptText, buffer.GetString());
+
+	int shift = scriptText[size / 2];
+
+	for (i = 0; i < size; i++)//encode file
+		if (i != size / 2)
+			scriptText[i] += shift;
+
+	return true;
+}
+*/
+
+
+extern char *dram_name[];
+extern HWND hDlgPlayer;
+
 
 
 //just saves the music data.
@@ -88,7 +151,16 @@ BOOL OrgData::SaveMusicData(void)
 {
 	NOTELIST *np;
 	int i,j; // i is TRACK
-	//ORG Structure to save
+	
+	for (i = 0; i < MAXTRACK; i++)
+	{
+		if (orgdat.tdata[i].note_num > info.alloc_note)
+		{
+			MessageBox(hWnd, "Some tracks are over allocated limit.", "Error(Save)", MB_OK);
+			return FALSE;
+		}
+	}
+
 	if (TrackFlag() == FALSE)
 	{
 		eightdat.wait = info.wait;
@@ -96,7 +168,22 @@ BOOL OrgData::SaveMusicData(void)
 		eightdat.dot = info.dot;
 		eightdat.repeat_x = info.repeat_x;
 		eightdat.end_x = info.end_x;
+
+		for (i = 0; i < 8; i++) {
+			eightdat.tdata[i].freq = info.tdata[i].freq;
+			eightdat.tdata[i].wave_no = info.tdata[i].wave_no;
+			eightdat.tdata[i].pipi = info.tdata[i].pipi;
+			eightdat.tdata[i].note_num = GetNoteNumber(i, NULL);
+		}
+
+		for (i = 8; i < 16; i++) {
+			eightdat.tdata[i].freq = info.tdata[i + 8].freq;
+			eightdat.tdata[i].wave_no = info.tdata[i + 8].wave_no;
+			eightdat.tdata[i].pipi = info.tdata[i + 8].pipi;
+			eightdat.tdata[i].note_num = GetNoteNumber(i + 8, NULL);
+		}
 	}
+
 	else
 	{
 		orgdat.wait = info.wait;
@@ -104,11 +191,7 @@ BOOL OrgData::SaveMusicData(void)
 		orgdat.dot = info.dot;
 		orgdat.repeat_x = info.repeat_x;
 		orgdat.end_x = info.end_x;
-	}
-	
-	//Loop that writes the needed TRACK data
-	if (TrackFlag() == TRUE)
-	{
+
 		for (i = 0; i < MAXTRACK; i++) {
 			orgdat.tdata[i].freq = info.tdata[i].freq;
 			orgdat.tdata[i].wave_no = info.tdata[i].wave_no;
@@ -116,23 +199,7 @@ BOOL OrgData::SaveMusicData(void)
 			orgdat.tdata[i].note_num = GetNoteNumber(i, NULL);
 		}
 	}
-	else
-	{
-		for (i = 0; i < 8; i++) {
-			eightdat.tdata[i].freq = info.tdata[i].freq;
-			eightdat.tdata[i].wave_no = info.tdata[i].wave_no;
-			eightdat.tdata[i].pipi = info.tdata[i].pipi;
-			eightdat.tdata[i].note_num = GetNoteNumber(i, NULL);
-		}
-			
-		for (i = 8; i < 16; i++) {
-			eightdat.tdata[i].freq = info.tdata[i+8].freq;
-			eightdat.tdata[i].wave_no = info.tdata[i+8].wave_no;
-			eightdat.tdata[i].pipi = info.tdata[i+8].pipi;
-			eightdat.tdata[i].note_num = GetNoteNumber(i+8, NULL);
-		}
-	}
-	
+
 	//Saves Notes
 	//Can't write to file error
 	FILE *fp;
@@ -168,9 +235,9 @@ BOOL OrgData::SaveMusicData(void)
 	}
 
 	if(j==1)fwrite(&pass[0], sizeof(char), 6, fp);
-	if(j==2)fwrite(&pass2[0], sizeof(char), 6, fp);//version 2, write version 2.
-	if(j==3)fwrite(&pass3[0], sizeof(char), 6, fp);//version 3, write version 3.
-	if(j==4)fwrite(&pass4[0], sizeof(char), 6, fp);
+	else if(j==2)fwrite(&pass2[0], sizeof(char), 6, fp);//version 2, write version 2.
+	else if(j==3)fwrite(&pass3[0], sizeof(char), 6, fp);//version 3, write version 3.
+	else fwrite(&pass4[0], sizeof(char), 6, fp);
 
 	//Writes the Struct of an ORG's data.
 	if (j < 4)
@@ -286,28 +353,24 @@ BOOL OrgData::SaveMusicData(void)
 	return TRUE;
 }
 
-
-extern char *dram_name[];
-extern HWND hDlgPlayer;
-
 //checks if the file exists?
 int OrgData::FileCheckBeforeLoad(char *checkfile)
 {
 	FILE *fp;
 	char pass_check[6];
-	char ver = 0;
 	if((fp=fopen(checkfile,"rb"))==NULL){
 		MessageBox(hWnd,"File Doesn't exist.","Loading Error",MB_OK);
 		return 1; //Sorry Strultz, I had to make it where ur little pop up windows don't pop up.
 	}
 	fread(&pass_check[0], sizeof(char), 6, fp);
-	if( !memcmp( pass_check, pass, 6 ) )ver = 1;
-	if( !memcmp( pass_check, pass2, 6 ) )ver = 2;
-	if( !memcmp( pass_check, pass3, 6 ) )ver = 3;
-	if (!memcmp(pass_check, pass4, 6))ver = 4;
-	if( !ver ){
+	if (!memcmp(pass_check, pass, 6))ver++;
+	else if (!memcmp(pass_check, pass2, 6) || !memcmp(pass_check, pass3, 6))ver++;
+	else if (!memcmp(pass_check, pass4, 6))ver++;
+	else if (!memcmp(pass_check, passXX, 6))ver++;
+	else if (!memcmp(pass_check, passxx, 6))ver++;
+	if (!ver) {
 		fclose(fp);
-		MessageBox(hWnd,"Not a proper ORG file.","Loading Error",MB_OK);
+		MessageBox(hWnd, "Not a valid Organya Version.", "Error(Load)", MB_OK);
 		return 1; //1
 	}
 	fclose(fp);
@@ -317,14 +380,13 @@ int OrgData::FileCheckBeforeLoad(char *checkfile)
 
 BOOL OrgData::LoadMusicData(void)
 {
-	ORGANYADATA orgdat;
+	ORGANYADATA orgdat{};
 	NOTELIST* np;
 	int i, j;
 	char pass_check[6];
-	char ver = 0;
 	bool cflag = false;
 	bool TrackTurn = false;
-
+	
 	//｣｣｣｣｣｣｣｣｣｣｣｣｣｣｣ロード
 	FILE* fp;
 	if ((fp = fopen(mus_file, "rb")) == NULL) {
@@ -334,9 +396,10 @@ BOOL OrgData::LoadMusicData(void)
 	//パスワードチェック
 	fread(&pass_check[0], sizeof(char), 6, fp);
 	if (!memcmp(pass_check, pass, 6))ver = 1;
-	if (!memcmp(pass_check, pass2, 6))ver = 2;
-	if (!memcmp(pass_check, pass3, 6))ver = 3;
-	if (!memcmp(pass_check, pass4, 6))ver = 4;
+	else if (!memcmp(pass_check, pass2, 6) || !memcmp(pass_check, pass3, 6))ver = 2;
+	else if (!memcmp(pass_check, pass4, 6))ver = 4;
+	else if (!memcmp(pass_check, passXX, 6))ver = 5;
+	else if (!memcmp(pass_check, passxx, 6))ver = 6;
 	if (!ver) {
 		fclose(fp);
 		MessageBox(hWnd, "Not a proper Version.", "Error(Load)", MB_OK);
@@ -347,26 +410,24 @@ BOOL OrgData::LoadMusicData(void)
 	if (ver == 4)
 	{
 		fread(&orgdat, sizeof(ORGANYADATA), 1, fp);
-	info.wait = orgdat.wait;
-	info.line = orgdat.line;
-	info.dot = orgdat.dot;
-	info.repeat_x = orgdat.repeat_x;
-	info.end_x = orgdat.end_x;
+		info.wait = orgdat.wait;
+		info.line = orgdat.line;
+		info.dot = orgdat.dot;
+		info.repeat_x = orgdat.repeat_x;
+		info.end_x = orgdat.end_x;
 	}
 	else
 	{
 		fread(&eightdat, sizeof(ORGDATAEIGHT), 1, fp);
-	info.wait = eightdat.wait;
-	info.line = eightdat.line;
-	info.dot = eightdat.dot;
-	info.repeat_x = eightdat.repeat_x;
-	info.end_x = eightdat.end_x;
+		info.wait = eightdat.wait;
+		info.line = eightdat.line;
+		info.dot = eightdat.dot;
+		info.repeat_x = eightdat.repeat_x;
+		info.end_x = eightdat.end_x;
 	}
 
-	//Reads the struct of an ORG file
 
-	
-	if (OrgFileType == true)
+	if (strstr(mus_file,".org16") != NULL)
 	{
 		for (i = 0; i < MAXTRACK; i++) {
 			info.tdata[i].freq = orgdat.tdata[i].freq;
@@ -391,8 +452,194 @@ BOOL OrgData::LoadMusicData(void)
 			info.tdata[j].wave_no = eightdat.tdata[i].wave_no;
 		}
 	}
+
 	//Loads in TRACKS
-	if (ver == 4) {
+	switch (ver) //I had to make a switch man... These if statements aren't compact no more.
+	{
+		case 1:
+		case 2:
+		case 3:
+		{
+			for (j = 0; j < 8; j++) {
+				for (i = 8; i < MAXMELODY; i++)
+				{
+					if (!TrackTurn)
+					{
+						info.tdata[i].wave_no = 0;
+						if (i == MAXMELODY - 1)
+						{
+							TrackTurn = true;
+						}
+					}
+					else if (j == 7 && i == MAXMELODY - 1)TrackTurn = false;
+				}
+				//If no notes, continue.
+				if (eightdat.tdata[j].note_num == 0) {
+					info.tdata[j].note_list = NULL;
+					continue;
+				}
+				if (eightdat.tdata[j].note_num > info.alloc_note) {
+					if (!cflag) {
+						MessageBox(NULL, "Some tracks were erased due to having too many notes.", "Notice", MB_OK | MB_ICONASTERISK);
+						for (i = 0; i < MAXTRACK; i++)
+						{
+							if (eightdat.tdata[i].note_num > info.alloc_note)
+							{
+								eightdat.tdata[i].note_num = 0;
+							}
+						}
+						cflag = true;
+					}
+				}
+				//リストを作る
+
+				np = info.tdata[j].note_p;
+				info.tdata[j].note_list = info.tdata[j].note_p;
+				np->from = NULL;
+				np->to = (np + 1);
+				np++;
+				for (i = 1; i < eightdat.tdata[j].note_num && i < info.alloc_note; i++) {
+					np->from = (np - 1);
+					np->to = (np + 1);
+					np++;
+				}
+				//最後の音符のtoはNULL
+				np--;
+				np->to = NULL;
+				//Placement of notes.
+				np = info.tdata[j].note_p;//Ｘ座標
+				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
+					if (i >= info.alloc_note) { fseek(fp, sizeof(long), SEEK_CUR); continue; }
+					fread(&np->x, sizeof(long), 1, fp);
+					np++;
+				}
+				np = info.tdata[j].note_p;//Ｙ座標
+				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
+					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
+					fread(&np->y, sizeof(unsigned char), 1, fp);
+					if (np->y >= 96) np->y = KEYDUMMY; //Places the notes on their Y/Key
+					np++;
+				}
+				np = info.tdata[j].note_p;//長さ
+				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
+					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
+					fread(&np->length, sizeof(unsigned char), 1, fp);
+					if (np->length == 0) np->length = 1; // Length of note.
+					np++;
+				}
+				np = info.tdata[j].note_p;//Volume
+				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
+					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
+					fread(&np->volume, sizeof(unsigned char), 1, fp);
+					np++;
+				}
+				np = info.tdata[j].note_p;//Panning
+				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
+					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
+					fread(&np->pan, sizeof(unsigned char), 1, fp);
+					np++;
+				}
+			}
+			for (j = 8; j < 16; j++) {
+				for (i = 24; i < MAXTRACK; i++)
+				{
+					if (!TrackTurn)
+					{
+						info.tdata[i].wave_no = 0;
+						if (i == MAXTRACK - 1)
+						{
+							TrackTurn = true;
+						}
+					}
+				}
+				//If no notes, continue.
+				if (eightdat.tdata[j].note_num == 0) {
+					info.tdata[j + 8].note_list = NULL;
+					continue;
+				}
+				//リストを作る
+				np = info.tdata[j + 8].note_p;
+				info.tdata[j + 8].note_list = info.tdata[j + 8].note_p;
+				np->from = NULL;
+				np->to = (np + 1);
+				np++;
+				for (i = 1; i < eightdat.tdata[j].note_num && i < info.alloc_note; i++) {
+					np->from = (np - 1);
+					np->to = (np + 1);
+					np++;
+				}
+				//最後の音符のtoはNULL
+				np--;
+				np->to = NULL;
+
+				//Placement of notes.
+				np = info.tdata[j + 8].note_p;//Ｘ座標
+				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
+					if (i >= info.alloc_note) { fseek(fp, sizeof(long), SEEK_CUR); continue; }
+					fread(&np->x, sizeof(long), 1, fp);
+					np++;
+				}
+				np = info.tdata[j + 8].note_p;//Ｙ座標
+				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
+					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
+					fread(&np->y, sizeof(unsigned char), 1, fp);
+					if (np->y >= 96) np->y = KEYDUMMY; //Places the notes on their Y/Key
+					np++;
+				}
+				np = info.tdata[j + 8].note_p;//長さ
+				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
+					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
+					fread(&np->length, sizeof(unsigned char), 1, fp);
+					if (np->length == 0) np->length = 1; // Length of note.
+					np++;
+				}
+				np = info.tdata[j + 8].note_p;//Volume
+				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
+					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
+					fread(&np->volume, sizeof(unsigned char), 1, fp);
+					np++;
+				}
+				np = info.tdata[j + 8].note_p;//Panning
+				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
+					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
+					fread(&np->pan, sizeof(unsigned char), 1, fp);
+					np++;
+				}
+			}
+			fclose(fp);
+			//データを有効に
+			for (j = 0; j < 8; j++)
+			{
+				MakeOrganyaWave(j, info.tdata[j].wave_no, info.tdata[j].pipi);
+			}
+			for (j = 16; j < 24; j++) {
+				i = info.tdata[j].wave_no;
+				InitDramObject(i, j - MAXMELODY);
+			}
+
+			//プレイヤーに表示
+			char str[16];
+			SetPlayPointer(0);//頭出し
+			scr_data.SetHorzScroll(0);
+			itoa(info.wait, str, 10);
+			SetDlgItemText(hDlgPlayer, IDE_VIEWWAIT, str);
+			SetDlgItemText(hDlgPlayer, IDE_VIEWMEAS, "0");
+			SetDlgItemText(hDlgPlayer, IDE_VIEWXPOS, "0");
+
+			scr_data.ChangeHorizontalRange(info.dot * info.line * MAXHORZMEAS);
+			//MakeMusicParts(info.line,info.dot);//パーツを生成
+			//MakePanParts(info.line,info.dot);
+			PutRecentFile(mus_file);
+			//↓2014.05.06 A
+			if (SaveWithInitVolFile != 0) {
+				AutoLoadPVIFile();
+			}
+			return TRUE;
+			break;
+		}
+
+		case 4: 
+		{
 		for (j = 0; j < MAXTRACK; j++) {
 			//If no notes, continue.
 			if (orgdat.tdata[j].note_num == 0) {
@@ -401,7 +648,14 @@ BOOL OrgData::LoadMusicData(void)
 			}
 			if (orgdat.tdata[j].note_num > info.alloc_note) {
 				if (!cflag) {
-					MessageBox(NULL, "Some tracks were shortened due to having too many notes.", "Notice", MB_OK | MB_ICONASTERISK);
+					MessageBox(NULL, "Some tracks were erased due to having too many notes.", "Notice", MB_OK | MB_ICONASTERISK);
+					for (i = 0; i < MAXTRACK; i++)
+					{
+						if (orgdat.tdata[i].note_num > info.alloc_note)
+						{
+							orgdat.tdata[i].note_num = 0;
+						}
+					}
 					cflag = true;
 				}
 			}
@@ -482,187 +736,18 @@ BOOL OrgData::LoadMusicData(void)
 		if (SaveWithInitVolFile != 0) {
 			AutoLoadPVIFile();
 		}
-	}
-	
-	else
-		{
-			for (j = 0; j < 8; j++) {
-				for (i = 8; i < MAXMELODY; i++)
-				{
-					if (!TrackTurn)
-					{
-						info.tdata[i].wave_no = 0;
-						if (i == MAXMELODY)
-						{
-							TrackTurn = true;
-						}
-					}
-					//if (j == 7)TrackTurn = false; break;
-				}
-				//If no notes, continue.
-				if (eightdat.tdata[j].note_num == 0) {
-					info.tdata[j].note_list = NULL;
-					continue;
-				}
-				if (eightdat.tdata[j].note_num > info.alloc_note) {
-					if (!cflag) {
-						MessageBox(NULL, "Some tracks were shortened due to having too many notes.", "Notice", MB_OK | MB_ICONASTERISK);
-						cflag = true;
-					}
-				}
-				//リストを作る
-				
-				np = info.tdata[j].note_p;
-				info.tdata[j].note_list = info.tdata[j].note_p;
-				np->from = NULL;
-				np->to = (np + 1);
-				np++;
-				for (i = 1; i < eightdat.tdata[j].note_num && i < info.alloc_note; i++) {
-					np->from = (np - 1);
-					np->to = (np + 1);
-					np++;
-				}
-				//最後の音符のtoはNULL
-				np--;
-				np->to = NULL;
-				//Placement of notes.
-				np = info.tdata[j].note_p;//Ｘ座標
-				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
-					if (i >= info.alloc_note) { fseek(fp, sizeof(long), SEEK_CUR); continue; }
-					fread(&np->x, sizeof(long), 1, fp);
-					np++;
-				}
-				np = info.tdata[j].note_p;//Ｙ座標
-				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
-					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
-					fread(&np->y, sizeof(unsigned char), 1, fp);
-					if (np->y >= 96) np->y = KEYDUMMY; //Places the notes on their Y/Key
-					np++;
-				}
-				np = info.tdata[j].note_p;//長さ
-				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
-					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
-					fread(&np->length, sizeof(unsigned char), 1, fp);
-					if (np->length == 0) np->length = 1; // Length of note.
-					np++;
-				}
-				np = info.tdata[j].note_p;//Volume
-				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
-					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
-					fread(&np->volume, sizeof(unsigned char), 1, fp);
-					np++;
-				}
-				np = info.tdata[j].note_p;//Panning
-				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
-					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
-					fread(&np->pan, sizeof(unsigned char), 1, fp);
-					np++; 
-				}
-			}
-			for (j = 8; j < 16; j++) {
-				for (i = 24; i < MAXTRACK; i++)
-				{
-					if (!TrackTurn)
-					{
-						info.tdata[i].wave_no = 0;
-						if (i == MAXTRACK)
-						{
-							TrackTurn = true;
-						}
-					}
-					//else if (j == 16) break;
-				}
-				//If no notes, continue.
-				if (eightdat.tdata[j].note_num == 0) {
-					info.tdata[j+8].note_list = NULL;
-					continue;
-				}
-				if (eightdat.tdata[j].note_num > info.alloc_note) {
-					if (!cflag) {
-						MessageBox(NULL, "Some tracks were shortened due to having too many notes.", "Notice", MB_OK | MB_ICONASTERISK);
-						cflag = true;
-					}
-				}
-				//リストを作る
-				np = info.tdata[j+8].note_p;
-				info.tdata[j+8].note_list = info.tdata[j+8].note_p;
-				np->from = NULL;
-				np->to = (np + 1);
-				np++;
-				for (i = 1; i < eightdat.tdata[j].note_num && i < info.alloc_note; i++) {
-					np->from = (np - 1);
-					np->to = (np + 1);
-					np++;
-				}
-				//最後の音符のtoはNULL
-				np--;
-				np->to = NULL;
-
-				//Placement of notes.
-				np = info.tdata[j+8].note_p;//Ｘ座標
-				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
-					if (i >= info.alloc_note) { fseek(fp, sizeof(long), SEEK_CUR); continue; }
-					fread(&np->x, sizeof(long), 1, fp);
-					np++;
-				}
-				np = info.tdata[j+8].note_p;//Ｙ座標
-				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
-					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
-					fread(&np->y, sizeof(unsigned char), 1, fp);
-					if (np->y >= 96) np->y = KEYDUMMY; //Places the notes on their Y/Key
-					np++;
-				}
-				np = info.tdata[j+8].note_p;//長さ
-				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
-					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
-					fread(&np->length, sizeof(unsigned char), 1, fp);
-					if (np->length == 0) np->length = 1; // Length of note.
-					np++;
-				}
-				np = info.tdata[j+8].note_p;//Volume
-				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
-					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
-					fread(&np->volume, sizeof(unsigned char), 1, fp);
-					np++;
-				}
-				np = info.tdata[j+8].note_p;//Panning
-				for (i = 0; i < eightdat.tdata[j].note_num; i++) {
-					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
-					fread(&np->pan, sizeof(unsigned char), 1, fp);
-					np++;
-				}
-			}
-			fclose(fp);
-			//データを有効に
-			for (j = 0; j < 8; j++)
-			{
-				MakeOrganyaWave(j, info.tdata[j].wave_no, info.tdata[j].pipi);
-			}
-			for (j = 16; j < 24; j++) {
-				i = info.tdata[j].wave_no;
-				InitDramObject(i, j - MAXMELODY);
-			}
-
-			//プレイヤーに表示
-			char str[16];
-			SetPlayPointer(0);//頭出し
-			scr_data.SetHorzScroll(0);
-			itoa(info.wait, str, 10);
-			SetDlgItemText(hDlgPlayer, IDE_VIEWWAIT, str);
-			SetDlgItemText(hDlgPlayer, IDE_VIEWMEAS, "0");
-			SetDlgItemText(hDlgPlayer, IDE_VIEWXPOS, "0");
-
-			scr_data.ChangeHorizontalRange(info.dot * info.line * MAXHORZMEAS);
-			//MakeMusicParts(info.line,info.dot);//パーツを生成
-			//MakePanParts(info.line,info.dot);
-			PutRecentFile(mus_file);
-			//↓2014.05.06 A
-			if (SaveWithInitVolFile != 0) {
-				AutoLoadPVIFile();
-			}
-		}
 		return TRUE;
+		break;
 	}
+
+		
+
+		case 5:
+		case 6:
+			return FALSE;
+			break;
+	}
+}
 
 void OrgData::SortNotes()
 {
@@ -761,3 +846,4 @@ void OrgData::SortNotes()
 	//MakePanParts(info.line,info.dot);
 
 }
+

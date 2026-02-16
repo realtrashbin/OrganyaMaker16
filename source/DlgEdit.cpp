@@ -54,7 +54,7 @@ BOOL CALLBACK DialogDelete(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lPara
 			a = binTrackCode(str);
 			GetDlgItemText(hdwnd,IDE_DELTRACK,str,4);
 			if(binTrackCode(str) == 99){
-				MessageBox(hdwnd,"Not a proper track.","Error(track)",MB_OK);
+				MessageBox(hdwnd,"Not a proper track.","Error(Delete)",MB_OK);
 
 				return 1;
 			}
@@ -69,7 +69,7 @@ BOOL CALLBACK DialogDelete(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lPara
 			c = atol(str);
 			pc.x2 = c * mi.dot*mi.line-1;
 			if(b >= c){
-				MessageBox(hdwnd,"Not a proper range.","Error(track)",MB_OK);
+				MessageBox(hdwnd,"Not a proper range.","Error(Delete)",MB_OK);
 				return 1;
 			}
 			SetUndo();
@@ -449,6 +449,7 @@ int cbox[MAXTRACK] = {
 BOOL CALLBACK DialogMultiDelete(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	char str[128] = { NULL };
+	RECT rect = {64,0,WWidth,WHeight};
 	int  i;
 	bool use;
 	PARCHANGE pc;
@@ -464,6 +465,33 @@ BOOL CALLBACK DialogMultiDelete(HWND hdwnd, UINT message, WPARAM wParam, LPARAM 
 	case WM_COMMAND:
 		switch (LOWORD(wParam))
 		{
+		case IDC_SETCOPY_FULLCLICK: //All
+			for (i = 0; i < MAXTRACK; i++)SendDlgItemMessage(hdwnd, cbox[i], BM_SETCHECK, 1, 0);
+			return 1;
+		case IDC_SETCOPY_FULLCLICK2: //Current
+			for (i = 0; i < MAXTRACK; i++)SendDlgItemMessage(hdwnd, cbox[i], BM_SETCHECK, 0, 0);
+			SendDlgItemMessage(hdwnd, cbox[org_data.track], BM_SETCHECK, 1, 0);
+			return 1;
+		case IDC_SETCOPY_FULLCLICK3: //Melody
+			for (i = 0; i < MAXMELODY; i++)
+			{
+				SendDlgItemMessage(hdwnd, cbox[i], BM_SETCHECK, 1, 0);
+			}
+			for (i = MAXMELODY; i < MAXTRACK; i++)
+			{
+				SendDlgItemMessage(hdwnd, cbox[i], BM_SETCHECK, 0, 0);
+			}
+			return 1;
+		case IDC_SETCOPY_FULLCLICK4: //Drams
+			for (i = 0; i < MAXMELODY; i++)
+			{
+				SendDlgItemMessage(hdwnd, cbox[i], BM_SETCHECK, 0, 0);
+			}
+			for (i = MAXMELODY; i < MAXTRACK; i++)
+			{
+				SendDlgItemMessage(hdwnd, cbox[i], BM_SETCHECK, 1, 0);
+			}
+			return 1;
 		case IDCANCEL:
 			EndDialog(hdwnd, 0);
 			EnableWindow(hDlgPlayer, true);
@@ -477,7 +505,7 @@ BOOL CALLBACK DialogMultiDelete(HWND hdwnd, UINT message, WPARAM wParam, LPARAM 
 			pc.x2 = atoi(str)*mi.dot*mi.line-1;
 			if (pc.x1 >= pc.x2)
 			{
-				MessageBox(hdwnd, "Invalid copy range.", "Error(Multi-Delete)", MB_OK);
+				MessageBox(hdwnd, "Invalid copy range.", "Error(Delete)", MB_OK);
 				return 1;
 			}
 			use = false;
@@ -494,6 +522,7 @@ BOOL CALLBACK DialogMultiDelete(HWND hdwnd, UINT message, WPARAM wParam, LPARAM 
 				MessageBox(hdwnd, "You must select one track.", "Error(Delete)", MB_OK);
 				return 1;
 			}
+			SetUndo();
 			for (i = 0; i < MAXTRACK; i++)
 			{
 				pc.track = i;
@@ -503,6 +532,7 @@ BOOL CALLBACK DialogMultiDelete(HWND hdwnd, UINT message, WPARAM wParam, LPARAM 
 				}
 			}
 			MessageBox(hdwnd, "Selected Tracks deleted.", "Done", MB_OK);
+			
 			break;
 		}
 		break;

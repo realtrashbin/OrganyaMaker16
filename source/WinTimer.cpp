@@ -92,19 +92,6 @@ BOOL StartTimer(DWORD dwTimer)
 /*■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■*/
 BOOL QuitMMTimer()
 {
-	/*MMRESULT ret;
-
-	if(TimerID != TIMERR_NOERROR)
-	{
-		//タイマーを使用中なら終了させる
-		ret = timeKillEvent(TimerID);
-		if((ret) != TIMERR_NOERROR) return FALSE;
-	}
-	//タイマーリソースを開放する
-	ret = timeEndPeriod(ExactTime);
-	if((ret) != TIMERR_NOERROR) return FALSE;
-	return TRUE;*/
-
 	S_SetOrganyaTimer(0);
 	return TRUE;
 }

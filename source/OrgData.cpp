@@ -713,16 +713,10 @@ void OrgData::InitOrgData(void)
 	info.tdata[19].wave_no = 6;
 	info.tdata[20].wave_no = 4;
 	info.tdata[21].wave_no = 8;
-	info.tdata[22].wave_no = 7;
-	info.tdata[23].wave_no = 10;
-	info.tdata[24].wave_no = 0;
-	info.tdata[25].wave_no = 0;
-	info.tdata[26].wave_no = 0;
-	info.tdata[27].wave_no = 0;
-	info.tdata[28].wave_no = 0;
-	info.tdata[29].wave_no = 0;
-	info.tdata[30].wave_no = 0;
-	info.tdata[31].wave_no = 0;
+	for (i = 22; i < MAXTRACK; i++)
+	{
+		info.tdata[i].wave_no = 0;
+	}
 	for(i = MAXMELODY; i < MAXTRACK; i++){
 		InitDramObject(info.tdata[i].wave_no,i-MAXMELODY);
 	}

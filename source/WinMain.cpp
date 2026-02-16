@@ -88,7 +88,6 @@ char lpszName[MAX_PATH+20];// = "Organya 2 - ";//Name to register on Windows
 ORGDATA org_data;//main data
 SCROLLDATA scr_data;//scroll data
 MOUSEDATA mouse_data;//mouse data
-extern char music_file[];//file name
 extern char mus_file[];
 extern int sGrid;	//Range selection in grid units
 extern int sACrnt;	//Range selection always on current track
@@ -115,6 +114,7 @@ extern int iDlgRepeat; //Iteration count obtained from the dialog
 extern char strMIDI_TITLE[256];
 extern char strMIDI_AUTHOR[256];
 extern unsigned char ucMIDIProgramChangeValue[MAXTRACK];
+extern void TitlebarRefresh();
 
 //for saving window size
 RECT WinRect;
@@ -163,23 +163,73 @@ char *gSelectedTheme;
 char *gSelectedWave;
 
 static HACCEL Ac;
+std::string Ext(mus_file);
+
+//Show filename in title bar
+void SetTitlebarText()
+{
+	int i, j, t;
+	char k;
+	char set_name[MAX_PATH + 20];//display space in title
+	char file_name[MAX_PATH];//Manipulate names (exclude directories)
+
+
+
+	i = 0;
+	while (mus_file[i] != NULL) i++;//first up to the end
+	while (i != 0 && mus_file[i - 1] != '\\') i--; //Last circle mark
+
+	//create file name
+	j = 0;
+	while (mus_file[i] != NULL) {
+		file_name[j] = mus_file[i];
+		i++;
+		j++;
+	}
+	file_name[j] = NULL;
+
+	t = 0;
+
+	k = 0;
+	if (gFileModified) { // Lazy
+		set_name[0] = '*';
+		k = 1;
+	}
+	//put file name
+	for (i = 0; i < MAX_PATH; i++) {
+		if (file_name[i] == NULL)
+			break;
+		set_name[i + t + k] = file_name[i];
+	}
+
+	//Insert app title
+	for (j = 0; j < 20; j++) {
+		set_name[i + t + k] = lpszName[j];
+		if (set_name[i + t + k] == NULL)
+			break;
+		i++;
+	}
+	SetWindowText(hWnd, &set_name[0]);
+}
 
 bool OpenDoSave(HWND hwnd, bool savenew) {
 	char res;
-	std::string filename(music_file);
-	size_t Organyaname = filename.find_last_of(".");
 	
-	
-	if (((!org_data.TrackFlag() && Organyaname != NULL) || (org_data.TrackFlag() && Organyaname == NULL)) || (savenew || gFileUnsaved)) {
-		res = GetFileNameSave(hwnd, MessageString[IDS_STRING62]); //"Save As"
-		if (res == MSGCANCEL) return false;
+	if (((org_data.TrackFlag() && strstr(mus_file,".org16") == NULL) || (!org_data.TrackFlag() && strstr(mus_file,".org16") != NULL)) || (savenew || gFileUnsaved)) {
+		res = GetFileNameSave(hwnd, "Save As"); //"Save As"
+		if (res == MSGCANCEL)
+		{
+			TitlebarRefresh();
+			SetTitlebarText();
+			return false;
+		}
 		if (res == MSGEXISFILE) {
-			if(MessageBox(hwnd,"Do you want to overwrite?", "There is a file with the same name", MB_YESNO | MB_ICONEXCLAMATION)	// 2014.10.19 D
-				== IDNO) return false;
+			if (MessageBox(hwnd, "Do you want to overwrite?", "There is a file with the same name", MB_YESNO | MB_ICONEXCLAMATION)	// 2014.10.19 D
+				== IDNO) TitlebarRefresh(); SetTitlebarText(); return false;
 		}
 	}
-	
-	
+
+	TitlebarRefresh();
 	org_data.SaveMusicData();
 	SetModified(false);
 	gFileUnsaved = false;
@@ -190,18 +240,6 @@ int CancelDeleteCurrentData(int iMessagePattern = 1){
 	int res;
 	if(iChangeFinish!=0){	// A 2010.09.22
 		if(gFileModified){
-			//Confirm the end when there is a change. // A 2010.09.22
-			/*if(iMessagePattern == 0){
-				//if(MessageBox(hWnd,"Any unsaved content will be discarded. Initialize?", "Initialization confirmation",MB_OKCANCEL | MB_ICONASTERISK)==IDCANCEL)return 1;	// 2014.10.19 D
-				res = msgbox(hWnd,IDS_NOTIFY_INITIALIZE, IDS_NOTIFY_TITLE_INITALIZE,MB_YESNOCANCEL | MB_ICONWARNING);	// 2014.10.19 A
-			}else if(iMessagePattern == 1){
-				//if(MessageBox(hWnd,"Any unsaved content will be discarded. Are you sure you want to quit?", "end confirmation",MB_OKCANCEL | MB_ICONASTERISK)==IDCANCEL)return 1;	// 2014.10.19 D
-				res = msgbox(hWnd,IDS_NOTIFY_EXIT, IDS_NOTIFY_TITLE_EXIT,MB_YESNOCANCEL | MB_ICONWARNING);	// 2014.10.19 A
-			}else if(iMessagePattern == 2){
-				//if(MessageBox(hWnd,"Any unsaved content will be discarded. do you want to load the file?", "load confirmation",MB_OKCANCEL | MB_ICONASTERISK)==IDCANCEL)return 1;	// 2014.10.19 D
-				res = msgbox(hWnd,IDS_NOTIFY_LOAD, IDS_NOTIFY_TITLE_LOAD,MB_YESNOCANCEL | MB_ICONWARNING);	// 2014.10.19 A
-			}*/
-			//res = msgbox(hWnd, IDS_NOTIFY_UNSAVED, IDS_NOTIFY_TITLE_UNSAVED, MB_YESNOCANCEL | MB_ICONWARNING);	// 2014.10.19 A
 			TCHAR strMesssage[2048];
 			wsprintf(strMesssage, MessageString[IDS_NOTIFY_UNSAVED], mus_file);
 			res = MessageBox(hWnd, strMesssage, MessageString[IDS_NOTIFY_TITLE_UNSAVED], MB_YESNOCANCEL | MB_ICONWARNING);
@@ -238,7 +276,7 @@ void ReloadBitmaps() {
 	//MakeMusicParts(mi.line, mi.dot);
 	//MakePanParts(mi.line, mi.dot);
 
-	//org_data.PutMusic();
+	org_data.PutMusic();
 	//RedrawWindow(hWnd, &rect, NULL, RDW_INVALIDATE | RDW_ERASENOW);
 }
 
@@ -525,10 +563,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR dropfile
 		int ggg = strlen(gfn)-ttt;
 		gfn[ggg]=0;
 		//MessageBox(hWnd,gfn,"Error(Load)",MB_OK);
-
 		if (!org_data.FileCheckBeforeLoad(gfn)) { //A 2010.09.25 If the file is in Org format
-			strcpy(mus_file, gfn +(char) *" (Not loaded)");
-			if (org_data.LoadMusicData() == TRUE) { //C 2010.09.25 Judgment added
+			strcpy(mus_file, gfn);
+			if (org_data.LoadMusicData() == TRUE) { //C 2010.09.25 Judgment added //This is what the EXE runs when you click on an ORG file.
 				SetModified(false);//title name set
 				gFileUnsaved = false;
 				//DetectPreciseMode();
@@ -542,7 +579,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR dropfile
 			else {
 				//Because it was not an ORG format file //A 2010.9.25
 				//File name clear
-				strcpy(mus_file, "NewData");
+				strcpy(mus_file, "NewData.org");
 			}
 		}
 	}
@@ -681,7 +718,7 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 				DialogBox(hInst,"DLGDELETE",hwnd,DialogDelete);
 				break;
 			case IDM_DLGMULDELETE:
-			case ID_AC_DLGMUL_DELETE:
+			case ID_AC_MULDELETE:
 				DialogBox(hInst, "DLGMULDELETE", hwnd, DialogMultiDelete);
 				break;
 			case IDM_DLGCOPY://
@@ -751,10 +788,10 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 			case ID_AC_MENUNEWSAVE:
 				OpenDoSave(hwnd, true);
 				break;
-			case IDM_EXPORT_MIDI: //Export 2014.05.11
+			case IDM_EXPORT_XM: //Export 2014.05.11
 			case ID_AC_MIDI:
 				
-				res = GetFileNameMIDI(hwnd,MessageString[IDS_STRING63], strMIDIFile );//"Export in standard MIDI format"
+				res = GetFileNameXM(hwnd,"MIDI Export", strMIDIFile );//"Export in standard MIDI format"
 				if(res == MSGCANCEL)break;
 				if(res == MSGEXISFILE){
 					//if(MessageBox(hwnd,"Do you want to overwrite?","There is a file with the same name",MB_YESNO | MB_ICONEXCLAMATION)	// 2014.10.19 D
@@ -1140,8 +1177,8 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 				//if(MessageBox(hwnd,"Any unsaved content will be discarded. Initialize?","Initialization confirmation",MB_OKCANCEL)==IDCANCEL)break; //2010.09.25 A
 				if(CancelDeleteCurrentData(CDCD_INIT))break;
 				ClearUndo();
-				memset(music_file, 0 , MAX_PATH);
-				strcpy(music_file, "NewData");
+				memset(mus_file, 0 , MAX_PATH);
+				strcpy(mus_file, "NewData.org");
 				//for(i = 0; i < 12; i++){
 				//	mus_file[i] = name[i];
 				//}
@@ -1279,7 +1316,7 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 		switch(LOWORD(wParam)){
 		default: SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, ""); break;
 		case ID_MENUITEM40265:      SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING78]); break;
-		case IDM_EXPORT_MIDI:       SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING79]); break;
+		case IDM_EXPORT_XM:       SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING79]); break;
 		case IDM_LOAD2:             SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING80]); break;
 		case IDM_SAVEOVER:          SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, mus_file); break; 
 		case IDM_SAVENEW:           SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING81]); break; 
@@ -1325,7 +1362,7 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 		//DragQueryFile((HDROP)wParam,0,mus_file,MAX_PATH);	// 2014.05.22 D
 		DragQueryFile((HDROP)wParam,0,strMIDIFile,MAX_PATH);	// 2014.05.22 A
 		if(org_data.FileCheckBeforeLoad(strMIDIFile)){
-			msgbox(hwnd, IDS_STRING64, IDS_ERROR_LOAD, MB_OK | MB_ICONWARNING);
+			//msgbox(hwnd, IDS_STRING64, IDS_ERROR_LOAD, MB_OK | MB_ICONWARNING);
 			//SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING64]); // The file cannot be opened or is in an invalid format.
 			break;
 		}
@@ -1395,13 +1432,13 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 			scr_data.KeyScroll(DIRECTION_RIGHT);
 			break;
 		case VK_F5:
-		case VK_NUMPAD0:
-			if(timer_sw == 0)SendMessage(hDlgPlayer , WM_COMMAND , IDC_PLAY , NULL);
-			else SendMessage(hDlgPlayer , WM_COMMAND , IDC_STOP , NULL);
+		//case VK_SPACE:
+			if (timer_sw == 0)SendMessage(hDlgPlayer, WM_COMMAND, IDC_PLAY, NULL);
+			else SendMessage(hDlgPlayer, WM_COMMAND, IDC_STOP, NULL);
 			break;
 		//case VK_HOME:
-		//	SendMessage(hDlgPlayer , WM_COMMAND , IDC_START , NULL);
-		//	break;
+			//SendMessage(hDlgPlayer , WM_COMMAND , IDC_START , NULL);
+			//break;
 		case 'Z':
 		case 'S':
 		case 'X':
@@ -1588,52 +1625,6 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 	}
 
 	return FALSE;
-}
-//Show filename in title bar
-void SetTitlebarText()
-{
-	int i, j,t;
-	char k;
-	char set_name[MAX_PATH + 20];//display space in title
-	char file_name[MAX_PATH];//Manipulate names (exclude directories)
-
-
-
-	i = 0;
-	while (mus_file[i] != NULL) i++;//first up to the end
-	while (i != 0 && mus_file[i - 1] != '\\') i--; //Last circle mark
-
-	//create file name
-	j = 0;
-	while (mus_file[i] != NULL) {
-		file_name[j] = mus_file[i];
-		i++;
-		j++;
-	}
-	file_name[j] = NULL;
-
-	t = 0;
-
-	k = 0;
-	if (gFileModified) { // Lazy
-		set_name[0] = '*';
-		k = 1;
-	}
-	//put file name
-	for (i = 0; i < MAX_PATH; i++) {
-		if (file_name[i] == NULL)
-			break;
-		set_name[i + t + k] = file_name[i];
-	}
-
-	//Insert app title
-	for (j = 0; j < 20; j++) {
-		set_name[i + t + k] = lpszName[j];
-		if (set_name[i + t + k] == NULL)
-			break;
-		i++;
-	}
-	SetWindowText(hWnd, &set_name[0]);
 }
 
 void SetModified(bool mod) {

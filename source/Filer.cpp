@@ -5,13 +5,13 @@
 #include "OrgData.h"
 #include "rxoFunction.h"
 #include <string>
-#include <minwindef.h>
 
 RECT CmnDialogWnd;
 int count_of_INIT_DONE;
 int iDlgRepeat; //ダイアログから取得した繰り返し回数
 extern char strMIDI_TITLE[256];
 extern char strMIDI_AUTHOR[256];
+extern void TitlebarRefresh(void);
 LPCTSTR  MIDIPC[]={
 	"000 Acoustic Grand Piano","001 Bright Acoustic Piano","002 Electric Grand Piano","003 Honky-tonk Piano","004 Electric Piano 1","005 Electric Piano 2","006 Harpsichord","007 Clavi",
 	"008 Celesta","009 Glockenspiel","010 Music Box","011 Vibraphone","012 Marimba","013 Xylophone","014 Tubular Bells","015 Dulcimer",
@@ -32,30 +32,22 @@ LPCTSTR  MIDIPC[]={
 };
 
 extern unsigned char ucMIDIProgramChangeValue[MAXTRACK];
-
-char GetFileNameSave(HWND hwnd,char *title)
+char GetFileNameSave(HWND hwnd, char* title)
 {//ファイル名を取得(セーブ)
 	OPENFILENAME ofn;
+	int i;
+	const char* nExt;
 	//FILE *fp;
 //	char res;//ファイルオープンの結果
-	memset(&ofn,0,sizeof(OPENFILENAME));
+	memset(&ofn, 0, sizeof(OPENFILENAME));
 	ofn.lStructSize = sizeof(OPENFILENAME);
-	ofn.hwndOwner   = hwnd;
-	ofn.hInstance   = hInst;
-	ofn.lpstrFile   = mus_file;
-	ofn.nMaxFile    = MAX_PATH;
-	ofn.lpstrTitle  = title;
-	ofn.Flags       = OFN_NOREADONLYRETURN | OFN_OVERWRITEPROMPT | OFN_CREATEPROMPT | OFN_HIDEREADONLY;
+	ofn.hwndOwner = hwnd;
+	ofn.hInstance = hInst;
+	ofn.lpstrFile = mus_file;
+	ofn.nMaxFile = MAX_PATH;
+	ofn.lpstrTitle = title;
+	ofn.Flags = OFN_NOREADONLYRETURN | OFN_OVERWRITEPROMPT | OFN_CREATEPROMPT | OFN_HIDEREADONLY;
 
-	strcpy(music_file, mus_file);
-	std::string Ext(mus_file);
-	if (Ext.find_last_of(".", 0) != NULL)
-	{
-		size_t e = Ext.find_last_of(".");
-		strcpy(mus_file, Ext.substr(0, e).c_str());
-	}
-
-	org_data.TrackFlag();
 	if (!org_data.TrackFlag())
 	{
 		ofn.lpstrFilter = "OrganyaData[*.org]\0*.org\0\0";
@@ -67,12 +59,14 @@ char GetFileNameSave(HWND hwnd,char *title)
 		ofn.lpstrDefExt = "org16";
 	}
 
+	TitlebarRefresh();
 
 	//ファイル名取得を試みる。
 	if (GetSaveFileName(&ofn));//InvalidateRect(hwnd,NULL,TRUE);
-	else strcpy(mus_file, music_file);  return MSGCANCEL;//キャンセルで0が返る
+	else return MSGCANCEL;//キャンセルで0が返る
 	return MSGSAVEOK;
 }
+
 // グラフィックス描画 
 int DrawGr(HWND hWnd, HDC hdc) {
 	return 0; //もう何もしないよ。
@@ -177,25 +171,24 @@ UINT CALLBACK OFNHookProcMID(HWND hdlg, UINT msg, WPARAM wParam, LPARAM lParam)
     }
     return FALSE;
 }
-char GetFileNameMIDI(HWND hwnd,char *title, char *filename)
+char GetFileNameXM(HWND hwnd,char *title, char *filename)
 {//ファイル名を取得(MIDI)
 	OPENFILENAME ofn;
 	//FILE *fp;
 //	char res;//ファイルオープンの結果
 
 	memset(&ofn,0,sizeof(OPENFILENAME));
-	strcpy(filename, music_file);
-	char *p;
-	if( (p = strstr(filename, ".org")) != NULL ){
-		strcpy(p, ".mid");
+	strcpy(filename, mus_file);
+	char *p,*o;
+	if( (p = strstr(filename, ".org")) || ((p = strstr(filename, ".org16")) != NULL)) {
+		strcpy(p, ".xm");
 	}
 
 //	strcpy(GetName,"*.pmd");
 	ofn.lStructSize = sizeof(OPENFILENAME);
 	ofn.hwndOwner   = hwnd;
 	ofn.hInstance   = hInst;
-	//ofn.lpstrFilter = "標準MIDIファイル[*.mid]\0*.mid\0全ての形式 [*.*]\0*.*\0\0";	// 2014.10.19 D
-	ofn.lpstrFilter = MessageString[IDS_STRING110];	// 2014.10.19 A
+	ofn.lpstrFilter = "XM Module(*.xm)\0*.xm\0\0";	// 2014.10.19 A
 	ofn.lpstrFile   = filename;
 	ofn.nMaxFile    = MAX_PATH;
 	ofn.lpstrTitle  = title;
@@ -210,18 +203,11 @@ char GetFileNameMIDI(HWND hwnd,char *title, char *filename)
 	ofn.lpTemplateName = MAKEINTRESOURCE(IDD_MIDI);
 		
 
-	ofn.lpstrDefExt = "mid";
+	ofn.lpstrDefExt = "xm";
 
 	//ファイル名取得を試みる。
 	if(GetSaveFileName(&ofn));//InvalidateRect(hwnd,NULL,TRUE);
 	else return MSGCANCEL;//キャンセルで0が返る
-	//fp = fopen(filename,"rb");
-
-	//既存ファイルが存在する？  OFN_OVERWRITEPROMPT 指定で不要とした。
-	//if(fp != NULL){
-	//	fclose(fp);
-	//	return MSGEXISFILE;//既存ファイル
-	//}
 	return MSGSAVEOK;
 }
 
@@ -240,7 +226,7 @@ char GetFileNameLoad(HWND hwnd,char *title, char *filename)
 	ofn.lStructSize = sizeof(OPENFILENAME);
 	ofn.hwndOwner   = hwnd;
 	ofn.hInstance   = hInst;
-	ofn.lpstrFilter = "Organya Files[*.org16 & *.org]\0*.org16; *.org\0All Files[*.*]\0*.*\0\0";
+	ofn.lpstrFilter = "Organya Files[*.org & *.org16]\0*.org; *.org16\0All Files[*.*]\0*.*\0\0";
 	ofn.lpstrFile   = mfile;
 	ofn.nMaxFile    = MAX_PATH;
 	ofn.lpstrTitle  = title;
@@ -255,17 +241,10 @@ char GetFileNameLoad(HWND hwnd,char *title, char *filename)
 	if(org_data.FileCheckBeforeLoad(mfile)){
 		return MSGCANCEL;//指定ファイルが存在しない
 	}
-	
+
+
 	strcpy(mus_file,mfile);
-	strcpy(music_file, mfile);
-
-	strcpy(filename, mfile);
-	if ((p = strstr(filename, ".org16")) != NULL)
-	{
-		OrgFileType = true;
-	}
-	else OrgFileType = false;
-
+	
 
 	return MSGLOADOK;
 }
@@ -276,7 +255,7 @@ char GetFileNameExportWav(HWND hwnd, char* title, char* filename)
 	//FILE* fp;
 
 	memset(&ofn, 0, sizeof(OPENFILENAME));
-	strcpy(filename, music_file);
+	strcpy(filename, mus_file);
 	char* p;
 	if ((p = strstr(filename, ".org")) != NULL) {
 		strcpy(p, ".wav");

@@ -38,6 +38,8 @@ extern int MaximumGrid(int x);
 void ShowStatusMessage(void);
 
 extern void ChangeTrack(HWND hdwnd, int iTrack);
+extern void SetTitlebarText();
+extern void TitlebarRefresh();
 
 int iDragMode = 0;	//ﾄﾞﾗｯｸﾞで音符を伸ばす
 int alt_down = 0;
@@ -347,6 +349,7 @@ void ClickProcL(WPARAM wParam, LPARAM lParam)
 	long scr_h,scr_v;
 	long Note_x;
 	unsigned char line,dot;
+	MUSICINFO info;
 	if(timer_sw)return;
 
 	scr_data.GetScrollPosition(&scr_h,&scr_v);
@@ -405,10 +408,7 @@ void ClickProcL(WPARAM wParam, LPARAM lParam)
 			if(AdjustX > 0) mouse_x -= AdjustX;
 		}else AdjustX = 0;
 		if(org_data.SetNote(mouse_x,(unsigned char)mouse_y,iDragMode)==FALSE)ResetLastUndo(); //長くしすぎて失敗したときは戻す
-		//org_data.PutMusic();//楽譜の再描画
-		//RedrawWindow(hWnd,&rect,NULL,RDW_INVALIDATE|RDW_ERASENOW);
 		ClearDrag();
-//	}else if(mouse_y >= 292+WDWHEIGHTPLUS && mouse_y < 351+7+WDWHEIGHTPLUS){//パン配置
 	}else if(mouse_y >= WHeight+292-WHNM && mouse_y < WHeight+(351+7)-WHNM){//パン配置
 		mouse_x = (mouse_x - KEYWIDTH)/NoteWidth + scr_h;
 		mouse_y = (WHeight+(351+5)-WHNM - mouse_y)/5;//96*12は楽譜の縦サイズ(Pixel)
@@ -417,13 +417,9 @@ void ClickProcL(WPARAM wParam, LPARAM lParam)
 		ClearDrag();
 	}else if(mouse_y >= WHeight+365-WHNM && mouse_y < WHeight+428-WHNM){//ボリューム配置
 		mouse_x = (mouse_x - KEYWIDTH)/NoteWidth + scr_h;
-//		mouse_y = (428+WDWHEIGHTPLUS - mouse_y)*4;//96*12は楽譜の縦サイズ(Pixel)
 		mouse_y = (WHeight+428-WHNM - mouse_y)*4;//96*12は楽譜の縦サイズ(Pixel)
 		if((mouse_x != Last_mouse_x) ||(mouse_y != Last_mouse_y))SetUndo();
 		org_data.SetVolume(mouse_x,(unsigned char)mouse_y);
-//		org_data.SetVolume2(mouse_x,(unsigned char)mouse_y,0); //やりかけ
-		//org_data.PutMusic();//楽譜の再描画
-		//RedrawWindow(hWnd,&rect,NULL,RDW_INVALIDATE|RDW_ERASENOW);
 		Last_VOL_Drag_mouse_x = mouse_x; //2014.05.02 A
 		Last_VOL_Drag_mouse_y = mouse_y;
 		ClearDrag();
@@ -438,6 +434,7 @@ void ClickProcL(WPARAM wParam, LPARAM lParam)
 				}else{
 					nc_Select.x1_2=Note_x;
 				}
+
 			}else{ //ひっくり返す
 				if(sGrid || alt_down == 1){
 					nc_Select.x1_1=MinimumGrid(Note_x);
