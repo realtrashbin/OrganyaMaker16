@@ -25,7 +25,7 @@ Compatable with all ORG files.
 
 Exporting ORG-16 as a WAV file.
 
-(Soon)A hack to introduce it into Cave Story!
+(Eventually) A hack to introduce it into Cave Story!
 
 ## Download
 
