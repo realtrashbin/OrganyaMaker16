@@ -27,9 +27,9 @@ Exporting ORG-16 as a WAV file.
 
 (Eventually) A hack to introduce it into Cave Story!
 
-## Download
+## what is this branch?
 
-Check the Releases for the latest version: [![Releases](https://img.shields.io/github/downloads/RealTrashBin/OrganyaMaker16/total?style=plastic&logo=github)](https://github.com/Strultz/orgmaker-3/releases)
+This branch is for a more compact UI of Orgmaker16 for people with smaller monitors.
 
 ## Compiling
 
