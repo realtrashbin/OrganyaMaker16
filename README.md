@@ -7,6 +7,10 @@
 
 This does not use a MIDI device.  
 
+## what is this branch?
+
+This branch is for a more compact UI of Orgmaker16 for people with smaller monitors.
+
 ## History
 
 The original program was created by [Studio Pixel](http://studiopixel.sakura.ne.jp/) in 1999, and was used in [Cave Story](https://www.cavestory.org/) and [Azarashi](https://www.cavestory.org/pixels-works/azarashi.php).
@@ -26,10 +30,6 @@ Compatable with all ORG files.
 Exporting ORG-16 as a WAV file.
 
 (Eventually) A hack to introduce it into Cave Story!
-
-## what is this branch?
-
-This branch is for a more compact UI of Orgmaker16 for people with smaller monitors.
 
 ## Compiling
 
