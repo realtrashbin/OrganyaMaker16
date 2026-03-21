@@ -7,7 +7,7 @@
 
 This does not use a MIDI device.  
 
-## what is this branch?
+## What is this branch?
 
 This branch is for a more compact UI of Orgmaker16 for people with smaller monitors.
 
