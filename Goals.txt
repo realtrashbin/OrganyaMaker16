@@ -1,0 +1,8 @@
+	Goals:
+			Finish Encode feature for saving.
+
+			Add export to FT2 XM feature since it has 32 Tracks.
+			(Remember the one Clownancy made.)
+
+
+
