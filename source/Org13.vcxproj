@@ -172,6 +172,7 @@
     <ClInclude Include="DefOrg.h" />
     <ClInclude Include="Filer.h" />
     <ClInclude Include="Gdi.h" />
+    <ClInclude Include="WinMain.h" />
     <ClInclude Include="miniaudio.h" />
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="OrgData.h" />

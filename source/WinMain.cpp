@@ -61,6 +61,7 @@ BOOL CALLBACK DialogTheme(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 BOOL CALLBACK DialogWavExport(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogWaveDB(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogDecayLength(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
+//BOOL CALLBACK DialogEncode(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
 //BOOL CALLBACK DialogSettings(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 void SetModified(bool mod);
@@ -230,7 +231,10 @@ bool OpenDoSave(HWND hwnd, bool savenew) {
 	}
 
 	TitlebarRefresh();
-	org_data.SaveMusicData();
+	if (!org_data.SaveMusicData())
+	{
+		return false;
+	}
 	SetModified(false);
 	gFileUnsaved = false;
 	return true;
@@ -349,7 +353,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR dropfile
 	LoadString(GetModuleHandle(NULL), IDS_TITLE, lpszName, sizeof(lpszName) / sizeof(lpszName[0]));
 
 	wc.cbSize        = sizeof(WNDCLASSEX);
-	wc.style         = 0;//CS_DBLCLKS| CS_OWNDC;//Application style
+	wc.style         = CS_DBLCLKS| CS_OWNDC;//Application style
 	wc.lpfnWndProc   = (WNDPROC)WndProc;
 	wc.cbClsExtra    = 0;
 	wc.cbWndExtra    = 0;
@@ -607,7 +611,7 @@ BOOL SystemTask(void)
 
 		if (!TranslateAccelerator(hWnd, Ac, &msg)) {
 			if (!IsDialogMessage(hDlgPlayer, &msg)) {
-				if (!IsDialogMessage(hDlgTrack, &msg)) { //It'll hit here for multiple reasons, probably.
+				if (!IsDialogMessage(hDlgTrack, &msg)) {
 					if (!IsDialogMessage(hDlgEZCopy, &msg)) {
 						if (!IsDialogMessage(hDlgHelp, &msg)) {
 							TranslateMessage(&msg);
@@ -768,9 +772,9 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 			case IDM_DLGWAVEDBS:
 				DialogBox(hInst, "DLGWAVEDBS", hwnd, DialogWaveDB);
 				break;
-			case IDM_DLGSETTINGS:
-				//DialogBox(hInst, "DLGSETTINGS", hwnd, DialogSettings);
-				break;
+			/*case IDM_DLGSETTINGS:
+				DialogBox(hInst, "DLGSETTINGS", hwnd, DialogSettings);
+				break;*/
 			case IDM_DLGHELP://
 			case ID_AC_HELP:
 				//LoadFromResource(IDR_HELPHTML);
@@ -788,6 +792,9 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 			case ID_AC_MENUNEWSAVE:
 				OpenDoSave(hwnd, true);
 				break;
+			/*case IDM_MENUSAVEENCODE:
+				DialogBox(hInst, "DLGENCODE", hwnd, DialogEncode);
+				break;*/
 			case IDM_EXPORT_XM: //Export 2014.05.11
 			case ID_AC_MIDI:
 				
@@ -1316,7 +1323,7 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 		switch(LOWORD(wParam)){
 		default: SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, ""); break;
 		case ID_MENUITEM40265:      SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING78]); break;
-		case IDM_EXPORT_XM:       SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING79]); break;
+		//case IDM_EXPORT_XM:       SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING79]); break;
 		case IDM_LOAD2:             SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING80]); break;
 		case IDM_SAVEOVER:          SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, mus_file); break; 
 		case IDM_SAVENEW:           SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING81]); break; 

@@ -106,10 +106,3 @@ void TitlebarRefresh(void)
 	}
 }
 
-void NSO(void) //NonStandardOrganya //Don't play false ORGS!
-{
-	PlaySound("MENU", GetModuleHandle(NULL), SND_ASYNC | SND_RESOURCE);
-	MessageBox(NULL, "A fatal error has occurred. The program will now exit.", "SOMEBODY'S TOUCHING MY SPAGHET!!", MB_OK | MB_ICONERROR);
-	abort();
-}
-

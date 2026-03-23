@@ -35,8 +35,6 @@ extern unsigned char ucMIDIProgramChangeValue[MAXTRACK];
 char GetFileNameSave(HWND hwnd, char* title)
 {//ファイル名を取得(セーブ)
 	OPENFILENAME ofn;
-	int i;
-	const char* nExt;
 	//FILE *fp;
 //	char res;//ファイルオープンの結果
 	memset(&ofn, 0, sizeof(OPENFILENAME));
@@ -179,7 +177,7 @@ char GetFileNameXM(HWND hwnd,char *title, char *filename)
 
 	memset(&ofn,0,sizeof(OPENFILENAME));
 	strcpy(filename, mus_file);
-	char *p,*o;
+	char *p;
 	if( (p = strstr(filename, ".org")) || ((p = strstr(filename, ".org16")) != NULL)) {
 		strcpy(p, ".xm");
 	}
@@ -218,7 +216,6 @@ char GetFileNameLoad(HWND hwnd,char *title, char *filename)
 	OPENFILENAME ofn;
 	//FILE *fp;
 	char mfile[MAX_PATH];
-	char* p;
 
 	memset(&ofn, 0, sizeof(OPENFILENAME));
 	memset(&mfile, '\0', MAX_PATH);

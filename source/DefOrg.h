@@ -26,7 +26,7 @@
 #define MODEDECAY   64  //Something for Rxo's features.
 
 
-#define NUMDRAMITEM	43	// 43 wav files so 43 Drams
+#define NUMDRAMITEM	43	// 55 wav files so 55 Drams
 
 #define MAXHORZMEAS	999 // How many beats there are(GOD DAMN WHY IS IT SET TO 999!?)
 

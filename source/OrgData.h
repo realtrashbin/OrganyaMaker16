@@ -1,10 +1,10 @@
 #include "DefOrg.h"
 //編集用構造体///////////////
 typedef struct{//●コピー構造体
-	int track1;//このトラックの
+	char track1;//このトラックの
 	long x1_1;//ここから
 	long x1_2;//ここまでを
-	int track2;//このトラックの
+	char track2;//このトラックの
 	long x2;//ここに
 	long num;//何回
 }NOTECOPY;
@@ -136,5 +136,7 @@ typedef struct OrgData{
 		unsigned short GetWait(void);
 
 	bool CopyNoteDataToCB(NOTECOPY *nc, int iTrack, int iFullTrack);
+	//bool OrganyaEncoder(char shift);
+	//bool OrganyaDecoder(char shift);
 }ORGDATA;
 extern ORGDATA org_data;

@@ -62,86 +62,86 @@ extern int mute_name[];
 extern char timer_sw;
 extern HWND hWnd;
 extern int sACrnt;	//範囲選択は常にｶﾚﾝﾄﾄﾗｯｸ
-extern int tra, ful ,haba; 
-extern void SetEZCWindowMessage(char *Mess);
+extern int tra, ful, haba;
+extern void SetEZCWindowMessage(char* Mess);
 extern char TrackN[];
 extern char* gSelectedTheme;
 
-void ChangeTrackPlus(HWND hdwnd, int iValue){
+void ChangeTrackPlus(HWND hdwnd, int iValue) {
 	char str[8];
 
-	RECT rect = {64,0,WWidth,WHeight};//更新する領域(トラック変更)
+	RECT rect = { 64,0,WWidth,WHeight };//更新する領域(トラック変更)
 
 
 	org_data.track += iValue;
-	org_data.track =(org_data.track + 16)% 16;
+	org_data.track = (org_data.track + 16) % 16;
 	setRecentTrack(org_data.track); //A 2010.09.23 
 
-	if(timer_sw == 0) PlayOrganKey(36,org_data.track,1000,80);
+	if (timer_sw == 0) PlayOrganKey(36, org_data.track, 1000, 80);
 
-	itoa(org_data.track,str,10);
-	
-	if(sACrnt){
-		if(tra>=0){
+	itoa(org_data.track, str, 10);
+
+	if (sACrnt) {
+		if (tra >= 0) {
 			tra = org_data.track;
-			char wk[256],wk2[256];
+			char wk[256], wk2[256];
 
-			if(ful==0){
-				wsprintf(wk2,MessageString[IDS_STRING104], TrackN[tra]);
-				strcpy(wk,wk2);
-				wsprintf(wk2,MessageString[IDS_STRING105]);
-				strcat(wk,wk2);
+			if (ful == 0) {
+				wsprintf(wk2, MessageString[IDS_STRING104], TrackN[tra]);
+				strcpy(wk, wk2);
+				wsprintf(wk2, MessageString[IDS_STRING105]);
+				strcat(wk, wk2);
 				SetEZCWindowMessage(wk);
 			}
-			else if(ful==1){
-				wsprintf(wk2,MessageString[IDS_STRING106]);
-				strcpy(wk,wk2);
+			else if (ful == 1) {
+				wsprintf(wk2, MessageString[IDS_STRING106]);
+				strcpy(wk, wk2);
 				SetEZCWindowMessage(wk);
 			}
 		}
 	}
 
-	SetDlgItemText(hDlgTrack,IDE_VIEWTRACK,TrackCode[org_data.track]);
+	SetDlgItemText(hDlgTrack, IDE_VIEWTRACK, TrackCode[org_data.track]);
 	SetFocus(hWnd);
 }
 
 
-void ChangeTrack(HWND hdwnd, int iTrack){
+void ChangeTrack(HWND hdwnd, int iTrack) {
 	char str[16];
 	int i;
-	RECT rect = {64,0,WWidth,WHeight};//更新する領域(トラック変更)
+	RECT rect = { 64,0,WWidth,WHeight };//更新する領域(トラック変更)
 
 	i = iTrack;
 	org_data.track = i;
 	setRecentTrack(org_data.track); //A 2010.09.23 
 
-	if(timer_sw == 0) PlayOrganKey(36,i,1000,80); //Plays the sound
-	if(sACrnt){
-		if(tra>=0) {
+	if (timer_sw == 0) PlayOrganKey(36, i, 1000, 80); //Plays the sound
+	if (sACrnt) {
+		if (tra >= 0) {
 			tra = org_data.track;
 		}
 	}
 
-	itoa(org_data.track,str,10);
-	if(sACrnt){
-		if(tra>=0){
+	itoa(org_data.track, str, 10);
+	if (sACrnt) {
+		if (tra >= 0) {
 			tra = org_data.track;
-			char wk[256],wk2[256];
-			if(ful==0){ //part Selection
-				wsprintf(wk2,MessageString[IDS_STRING104], TrackN[tra]); 
-				strcpy(wk,wk2);
-				wsprintf(wk2,MessageString[IDS_STRING105]);
-				strcat(wk,wk2);
+			char wk[256], wk2[256];
+			if (ful == 0) { //part Selection
+				wsprintf(wk2, MessageString[IDS_STRING104], TrackN[tra]);
+				strcpy(wk, wk2);
+				wsprintf(wk2, MessageString[IDS_STRING105]);
+				strcat(wk, wk2);
 				SetEZCWindowMessage(wk);
 			}
-			else if(ful==1){ //The entire track
-				wsprintf(wk2,MessageString[IDS_STRING106]);
-				strcpy(wk,wk2);
+			else if (ful == 1) { //The entire track
+				wsprintf(wk2, MessageString[IDS_STRING106]);
+				strcpy(wk, wk2);
 				SetEZCWindowMessage(wk);
 			}
 		}
 	}
-	SetDlgItemText(hDlgTrack,IDE_VIEWTRACK,TrackCode[org_data.track]); //Sets the letter/number
+	SetDlgItemText(hDlgTrack, IDE_VIEWTRACK, TrackCode[org_data.track]); //Sets the letter/number
 	SetFocus(hWnd);
 }
 
@@ -178,81 +178,84 @@ void LoadTrackBitmaps(HWND hdwnd) {
 	LoadSingleBitmap(hdwnd, IDC_TRACKDxI, 14, 21, "B_TRACK_I");
 }
 
-BOOL CALLBACK DialogTrack(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam){
-	RECT rect = {64,0,WWidth,WHeight};//更新する領域(トラック変更)
+BOOL CALLBACK DialogTrack(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	RECT rect = { 64,0,WWidth,WHeight };//更新する領域(トラック変更)
 	int i, j;
 	char str[8];
 	MUSICINFO mi;
-	
-	switch(message){
+
+	switch (message) {
 	case WM_INITDIALOG://ダイアログが呼ばれた
 		org_data.GetMusicInfo(&mi);
-		itoa(mi.wait,str,10);
-		SetDlgItemText(hdwnd,IDE_VIEWWAIT,str);
+		itoa(mi.wait, str, 10);
+		SetDlgItemText(hdwnd, IDE_VIEWWAIT, str);
 		//itoa(org_data.track,str,10);
-		str[0]='1';
-		str[1]='\0';
-		SetDlgItemText(hdwnd,IDE_VIEWTRACK,str);
-		for(i = 0; i < MAXTRACK; i++)org_data.mute[i] = 0;
+		str[0] = '1';
+		str[1] = '\0';
+		SetDlgItemText(hdwnd, IDE_VIEWTRACK, str);
+		for (i = 0; i < MAXTRACK; i++)org_data.mute[i] = 0;
 		LoadTrackBitmaps(hdwnd);
 
 		return 1;
 	case WM_MOUSEMOVE:
-		if(wParam & MK_LBUTTON){
+		if (wParam & MK_LBUTTON) {
 			ReleaseCapture();
-			SendMessage( hdwnd, WM_SYSCOMMAND, SC_MOVE | 2, 0 );
+			SendMessage(hdwnd, WM_SYSCOMMAND, SC_MOVE | 2, 0);
 
 		}
 	case WM_COMMAND:
-		for(i = 0; i < MAXTRACK; i++){
-			if(track_name[i] == LOWORD(wParam)){
+		for (i = 0; i < MAXTRACK; i++) {
+			if (track_name[i] == LOWORD(wParam)) {
 				if (HIWORD(wParam) == BN_CLICKED) {
-					ChangeTrack(hdwnd , i);
+					ChangeTrack(hdwnd, i);
 				}
-				
+
 			}
 		}
 
-		if(HIWORD(wParam) == BN_CLICKED){
-			for(i = 0; i < MAXTRACK; i++){
-				if(IsDlgButtonChecked(hdwnd,mute_name[i]))
+		if (HIWORD(wParam) == BN_CLICKED) {
+			for (i = 0; i < MAXTRACK; i++) {
+				if (IsDlgButtonChecked(hdwnd, mute_name[i]))
 					org_data.mute[i] = 1;
 				else org_data.mute[i] = 0;
 			}
 			//SetFocus(hWnd);
 		}
-		switch(LOWORD(wParam)){
+		switch (LOWORD(wParam)) {
 		case IDC_BTN_SOLO:	//ソロ
 			j = 1;
-			for(i = 0; i < MAXTRACK; i++){
-				if(org_data.track == i){
-					if(org_data.mute[i] != 0){j = 0; break;}
-				}else{
-					if(org_data.mute[i] != 1){j = 0; break;}
+			for (i = 0; i < MAXTRACK; i++) {
+				if (org_data.track == i) {
+					if (org_data.mute[i] != 0) { j = 0; break; }
+				}
+				else {
+					if (org_data.mute[i] != 1) { j = 0; break; }
 				}
 			}
 			//j=1のとき、現在Trでミュート済み
 
-			if(j == 1){ //全ミュート解除
-				for(i = 0; i < MAXTRACK; i++){
-					if(IsDlgButtonChecked(hdwnd,mute_name[i])){
+			if (j == 1) { //全ミュート解除
+				for (i = 0; i < MAXTRACK; i++) {
+					if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
 						SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)0, 0L);
 						org_data.mute[i] = 0;
 					}
-				}	
-			}else{ //現在Tr以外をミュート
-				for(i = 0; i < MAXTRACK; i++){
-					if(org_data.track == i){
-						if(IsDlgButtonChecked(hdwnd,mute_name[i])){
+				}
+			}
+			else { //現在Tr以外をミュート
+				for (i = 0; i < MAXTRACK; i++) {
+					if (org_data.track == i) {
+						if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
 							SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)0, 0L);
 							org_data.mute[i] = 0;
 						}
-					}else{
-						if(IsDlgButtonChecked(hdwnd,mute_name[i])==0){
+					}
+					else {
+						if (IsDlgButtonChecked(hdwnd, mute_name[i]) == 0) {
 							SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)1, 0L);
 							org_data.mute[i] = 1;
 						}
-						
+
 					}
 				}
 			}
@@ -267,30 +270,31 @@ BOOL CALLBACK DialogTrack(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 			SetFocus(hWnd);		// 2010.11.30 A
 			break;
 		case IDC_BTN_FULL:	//フル
-			{
-				int ib = 0;
-				for(i = 0; i < MAXMELODY; i++){
-					if(IsDlgButtonChecked(hdwnd,mute_name[i])){
-						ib = 1;
-					}
-				}
-				if(ib!=0){ //全ミュート解除
-					for(i = 0; i < MAXMELODY; i++){
-						if(IsDlgButtonChecked(hdwnd,mute_name[i])){
-							SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)0, 0L);
-							org_data.mute[i] = 0;
-						}
-					}	
-				}else{ //全ミュート
-					for(i = 0; i < MAXMELODY; i++){
-						if(IsDlgButtonChecked(hdwnd,mute_name[i])==0){
-							SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)1, 0L);
-							org_data.mute[i] = 1;
-						}
-					}	
-					
+		{
+			int ib = 0;
+			for (i = 0; i < MAXMELODY; i++) {
+				if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
+					ib = 1;
 				}
 			}
+			if (ib != 0) { //全ミュート解除
+				for (i = 0; i < MAXMELODY; i++) {
+					if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
+						SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)0, 0L);
+						org_data.mute[i] = 0;
+					}
+				}
+			}
+			else { //全ミュート
+				for (i = 0; i < MAXMELODY; i++) {
+					if (IsDlgButtonChecked(hdwnd, mute_name[i]) == 0) {
+						SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)1, 0L);
+						org_data.mute[i] = 1;
+					}
+				}
+
+			}
+		}
 		break;
 		case IDC_BTN_FULL2:	//フル
 		{
@@ -318,61 +322,63 @@ BOOL CALLBACK DialogTrack(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 
 			}
 		}
-			SetFocus(hWnd);		// 2010.11.30 A
-			break;
+		SetFocus(hWnd);		// 2010.11.30 A
+		break;
 		//A2008/05/13
 		case IDC_BTN_MELO:	//メロディのみをON-OFF
-			{
-				int ib = 0;
-				for(i = 0; i < MAXMELODY / 2; i++){
-					if(IsDlgButtonChecked(hdwnd,mute_name[i])){
-						ib = 1;
-					}
-				}
-				if(ib!=0){ //全ミュート解除
-					for(i = 0; i < MAXMELODY / 2; i++){
-						if(IsDlgButtonChecked(hdwnd,mute_name[i])){
-							SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)0, 0L);
-							org_data.mute[i] = 0;
-						}
-					}	
-				}else{ //全ミュート
-					for(i = 0; i < MAXMELODY / 2; i++){
-						if(IsDlgButtonChecked(hdwnd,mute_name[i])==0){
-							SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)1, 0L);
-							org_data.mute[i] = 1;
-						}
-					}	
+		{
+			int ib = 0;
+			for (i = 0; i < MAXMELODY / 2; i++) {
+				if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
+					ib = 1;
 				}
 			}
-			SetFocus(hWnd);		// 2010.11.30 A
-			break;
+			if (ib != 0) { //全ミュート解除
+				for (i = 0; i < MAXMELODY / 2; i++) {
+					if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
+						SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)0, 0L);
+						org_data.mute[i] = 0;
+					}
+				}
+			}
+			else { //全ミュート
+				for (i = 0; i < MAXMELODY / 2; i++) {
+					if (IsDlgButtonChecked(hdwnd, mute_name[i]) == 0) {
+						SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)1, 0L);
+						org_data.mute[i] = 1;
+					}
+				}
+			}
+		}
+		SetFocus(hWnd);		// 2010.11.30 A
+		break;
 		case IDC_BTN_MELO2:	//ドラムのみをON-OFF
-			{
-				int ib = 0;
-				for(i = MAXMELODY / 2; i < MAXMELODY; i++){
-					if(IsDlgButtonChecked(hdwnd,mute_name[i])){
-						ib = 1;
-					}
-				}
-				if(ib!=0){ //全ミュート解除
-					for(i = MAXMELODY / 2; i < MAXMELODY; i++){
-						if(IsDlgButtonChecked(hdwnd,mute_name[i])){
-							SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)0, 0L);
-							org_data.mute[i] = 0;
-						}
-					}	
-				}else{ //全ミュート
-					for(i = MAXMELODY / 2; i < MAXMELODY; i++){
-						if(IsDlgButtonChecked(hdwnd,mute_name[i])==0){
-							SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)1, 0L);
-							org_data.mute[i] = 1;
-						}
-					}	
+		{
+			int ib = 0;
+			for (i = MAXMELODY / 2; i < MAXMELODY; i++) {
+				if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
+					ib = 1;
 				}
 			}
-			SetFocus(hWnd);		// 2010.11.30 A
-			break;
+			if (ib != 0) { //全ミュート解除
+				for (i = MAXMELODY / 2; i < MAXMELODY; i++) {
+					if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
+						SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)0, 0L);
+						org_data.mute[i] = 0;
+					}
+				}
+			}
+			else { //全ミュート
+				for (i = MAXMELODY / 2; i < MAXMELODY; i++) {
+					if (IsDlgButtonChecked(hdwnd, mute_name[i]) == 0) {
+						SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)1, 0L);
+						org_data.mute[i] = 1;
+					}
+				}
+			}
+		}
+		SetFocus(hWnd);		// 2010.11.30 A
+		break;
 		case IDC_BTN_DRAM:	//ドラムのみをON-OFF
 		{
 			int ib = 0;
@@ -428,11 +434,11 @@ BOOL CALLBACK DialogTrack(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 		SetFocus(hWnd);		// 2010.11.30 A
 		break;
 		case IDC_TR_WAIT:
-			DialogBox(hInst,"DLGSETTING",hdwnd,DialogSetting);
+			DialogBox(hInst, "DLGSETTING", hdwnd, DialogSetting);
 			SetFocus(hWnd);		// 2010.11.30 A
 			break;
 		case IDC_TR_TRACK: //トラックのTRボタン
-			DialogBox(hInst,"DLGWAVE",hdwnd,DialogWave);
+			DialogBox(hInst, "DLGWAVE", hdwnd, DialogWave);
 			SetFocus(hWnd);		// 2010.11.30 A
 			break;
 

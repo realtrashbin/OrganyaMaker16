@@ -607,6 +607,9 @@
 #define IDC_CHECK_PIPIx13				1654
 #define IDC_CHECK_PIPIx14				1655
 #define IDC_CHECK_PIPIx15				1656
+#define IDC_ENCODESHIFT					1660
+#define IDC_EXTRAPIPI					1670
+#define IDC_RANDOMFREQ					1671
 #define IDM_DLGWAIT                     40003
 #define IDM_DLGTRACK                    40004
 #define IDM_DLGWAVE                     40005

@@ -62,7 +62,7 @@ void SetEZCWindowMessage(char *Mess)
 	PrintCpHelp();
 }
 
-char TrackN[]="123456789QWERTYUIASDFGHJK";
+char TrackN[] = {"123456789QWERTYUIASDFGHJK"};
 
 PARCHANGE pc1;
 

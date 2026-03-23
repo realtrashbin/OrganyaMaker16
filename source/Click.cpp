@@ -349,7 +349,6 @@ void ClickProcL(WPARAM wParam, LPARAM lParam)
 	long scr_h,scr_v;
 	long Note_x;
 	unsigned char line,dot;
-	MUSICINFO info;
 	if(timer_sw)return;
 
 	scr_data.GetScrollPosition(&scr_h,&scr_v);
