@@ -156,6 +156,7 @@
     <ClCompile Include="OrgEdit.cpp" />
     <ClCompile Include="OrgFile.cpp" />
     <ClCompile Include="OrgFileMIDI.cpp" />
+    <ClCompile Include="OrgFlag.cpp" />
     <ClCompile Include="OrgPlay.cpp" />
     <ClCompile Include="rxoFunction.cpp" />
     <ClCompile Include="Scroll.cpp" />
@@ -172,7 +173,6 @@
     <ClInclude Include="DefOrg.h" />
     <ClInclude Include="Filer.h" />
     <ClInclude Include="Gdi.h" />
-    <ClInclude Include="WinMain.h" />
     <ClInclude Include="miniaudio.h" />
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="OrgData.h" />

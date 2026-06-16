@@ -53,6 +53,7 @@ extern int iDragMode;
 extern int SaveWithInitVolFile;
 extern int sMetronome;
 extern int sSmoothScroll;
+extern void TitlebarRefresh();
 
 TCHAR *MessageStringBuffer = NULL;	// 2014.10.19 A
 TCHAR *MessageString[MESSAGE_STRING_MAX];
@@ -593,7 +594,7 @@ int ReadIntegerFromVirtualCB(void)
 }
 
 //本物のCBにコピー
-void SetClipBoardFromVCB(void)
+/*void SetClipBoardFromVCB(void)
 {
 	//MessageBox(NULL,VirtualCB,"Error(Copy)",MB_OK);
 	HGLOBAL hText;
@@ -610,10 +611,10 @@ void SetClipBoardFromVCB(void)
 
 	ClearVirtualCB();
 
-}
+}*/
 
 //VCBへ代入
-void GetClipBoardToVCB(void)
+/*void GetClipBoardToVCB(void)
 {
 	HANDLE hText;
 	char *pText;
@@ -636,7 +637,7 @@ void GetClipBoardToVCB(void)
 
 	CloseClipboard();
 	ReadStartFromVirtualCB();
-}
+}*/
 
 RECT rect1 = {0,0,WWidth,WHeight};//更新する領域
 
@@ -658,6 +659,7 @@ void ReplaseUndo()
 	}else{
 		SetModified(true);
 	}
+	TitlebarRefresh();
 }
 
 void SetUndo()
@@ -713,7 +715,8 @@ void ReplaceRedo()
 	//org_data.PutBackGround();
 	//org_data.PutMusic();	//表示
 	//RedrawWindow(hWnd,&rect1,NULL,RDW_INVALIDATE|RDW_ERASENOW);
-
+	SetModified(true);
+	TitlebarRefresh();
 }
 
 void ChangeGridMode(int iValue)

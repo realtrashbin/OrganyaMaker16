@@ -328,13 +328,13 @@ BOOL CALLBACK DialogTrack(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 		case IDC_BTN_MELO:	//メロディのみをON-OFF
 		{
 			int ib = 0;
-			for (i = 0; i < MAXMELODY / 2; i++) {
+			for (i = 0; i < 8; i++) {
 				if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
 					ib = 1;
 				}
 			}
 			if (ib != 0) { //全ミュート解除
-				for (i = 0; i < MAXMELODY / 2; i++) {
+				for (i = 0; i < 8; i++) {
 					if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
 						SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)0, 0L);
 						org_data.mute[i] = 0;
@@ -342,7 +342,7 @@ BOOL CALLBACK DialogTrack(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 				}
 			}
 			else { //全ミュート
-				for (i = 0; i < MAXMELODY / 2; i++) {
+				for (i = 0; i < 8; i++) {
 					if (IsDlgButtonChecked(hdwnd, mute_name[i]) == 0) {
 						SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)1, 0L);
 						org_data.mute[i] = 1;
@@ -355,13 +355,13 @@ BOOL CALLBACK DialogTrack(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 		case IDC_BTN_MELO2:	//ドラムのみをON-OFF
 		{
 			int ib = 0;
-			for (i = MAXMELODY / 2; i < MAXMELODY; i++) {
+			for (i = 8; i < MAXMELODY; i++) {
 				if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
 					ib = 1;
 				}
 			}
 			if (ib != 0) { //全ミュート解除
-				for (i = MAXMELODY / 2; i < MAXMELODY; i++) {
+				for (i = 8; i < MAXMELODY; i++) {
 					if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
 						SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)0, 0L);
 						org_data.mute[i] = 0;
@@ -369,7 +369,7 @@ BOOL CALLBACK DialogTrack(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 				}
 			}
 			else { //全ミュート
-				for (i = MAXMELODY / 2; i < MAXMELODY; i++) {
+				for (i = 8; i < MAXMELODY; i++) {
 					if (IsDlgButtonChecked(hdwnd, mute_name[i]) == 0) {
 						SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)1, 0L);
 						org_data.mute[i] = 1;
@@ -382,13 +382,13 @@ BOOL CALLBACK DialogTrack(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 		case IDC_BTN_DRAM:	//ドラムのみをON-OFF
 		{
 			int ib = 0;
-			for (i = MAXMELODY; i < MAXTRACK - 8; i++) {
+			for (i = MAXMELODY; i < 24; i++) {
 				if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
 					ib = 1;
 				}
 			}
 			if (ib != 0) { //全ミュート解除
-				for (i = MAXMELODY; i < MAXTRACK - 8; i++) {
+				for (i = MAXMELODY; i < 24; i++) {
 					if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
 						SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)0, 0L);
 						org_data.mute[i] = 0;
@@ -396,7 +396,7 @@ BOOL CALLBACK DialogTrack(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 				}
 			}
 			else { //全ミュート
-				for (i = MAXMELODY; i < MAXTRACK - 8; i++) {
+				for (i = MAXMELODY; i < 24; i++) {
 					if (IsDlgButtonChecked(hdwnd, mute_name[i]) == 0) {
 						SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)1, 0L);
 						org_data.mute[i] = 1;
@@ -409,13 +409,13 @@ BOOL CALLBACK DialogTrack(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 		case IDC_BTN_DRAM2:	//ドラムのみをON-OFF
 		{
 			int ib = 0;
-			for (i = MAXMELODY + 8; i < MAXTRACK; i++) {
+			for (i = 24; i < MAXTRACK; i++) {
 				if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
 					ib = 1;
 				}
 			}
 			if (ib != 0) { //全ミュート解除
-				for (i = MAXMELODY + 8; i < MAXTRACK; i++) {
+				for (i = 24; i < MAXTRACK; i++) {
 					if (IsDlgButtonChecked(hdwnd, mute_name[i])) {
 						SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)0, 0L);
 						org_data.mute[i] = 0;
@@ -423,7 +423,7 @@ BOOL CALLBACK DialogTrack(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 				}
 			}
 			else { //全ミュート
-				for (i = MAXMELODY + 8; i < MAXTRACK; i++) {
+				for (i = 24; i < MAXTRACK; i++) {
 					if (IsDlgButtonChecked(hdwnd, mute_name[i]) == 0) {
 						SendMessage(GetDlgItem(hdwnd, mute_name[i]), BM_SETCHECK, (WPARAM)1, 0L);
 						org_data.mute[i] = 1;

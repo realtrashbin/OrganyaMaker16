@@ -610,6 +610,14 @@
 #define IDC_ENCODESHIFT					1660
 #define IDC_EXTRAPIPI					1670
 #define IDC_RANDOMFREQ					1671
+#define IDC_TRACKCHANGE					1680
+#define IDE_USEDFLAG					1690
+#define IDE_LEFTFLAG					1691
+#define IDC_FWAIT						1692
+#define IDC_FWAVE						1693
+#define IDC_FTRACK						1694
+#define IDC_WAITCHANGE					1695
+#define IDC_FPIPI						1696
 #define IDM_DLGWAIT                     40003
 #define IDM_DLGTRACK                    40004
 #define IDM_DLGWAVE                     40005
@@ -851,7 +859,6 @@
 #define IDM_EXPORT_XM					40259
 #define ID_AC_DLG_SWAP                  40260
 #define ID_EXPORT                       40262
-#define ID_AC_MIDI                      40264
 #define ID_MENUITEM40265                40265
 #define ID_AC_INIT                      40266
 #define ID_AC_PAN_REVERSE               40267
@@ -910,8 +917,7 @@
 #define ID_AC_CY						40421
 #define ID_AC_CU						40422
 #define ID_AC_CI						40423
-#define ID_AC_MENUSAVEENCODE			40424
-#define IDM_MENUSAVEENCODE				40425
+#define IDM_OFLAGS						40424
 #define ID_AC_MULDELETE					40426
 
 // Next default values for new objects

@@ -836,9 +836,8 @@ BOOL OrgData::EnsureEmptyArea(PARCHANGE *pc, int Function)
 }
 
 //iFullTrack==1のときはiTrackは無視。
-bool OrgData::CopyNoteDataToCB(NOTECOPY *nc, int iTrack, int iFullTrack )
+/*bool OrgData::CopyNoteDataToCB(NOTECOPY* nc, int iTrack, int iFullTrack)
 {
-	/*
 	int i,j,t,n;
 	PARCHANGE pc;//ペースト領域クリア用
 	NOTELIST *np;
@@ -901,9 +900,8 @@ bool OrgData::CopyNoteDataToCB(NOTECOPY *nc, int iTrack, int iFullTrack )
 		}
 	}
 	SetClipBoardFromVCB(); //真のクリップボードに
-*/
 	return true;
-}
+}*/
 
 
 BOOL OrgData::SwapTrack(NOTECOPY *pc)

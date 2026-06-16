@@ -8,6 +8,7 @@
 #include "Timer.h"
 #include "Sound.h"
 #include "Scroll.h"
+#include "TrackFlag.h"
 
 char timer_sw = 0;
 extern HWND hDlgTrack;
@@ -141,7 +142,7 @@ BOOL CALLBACK DialogPlayer(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lPara
 				scr_data.GetScrollPosition(&hp,&vp);
 				org_data.SetPlayPointer(hp);
 				timer_sw = '1';
-				InitMMTimer();
+				//InitMMTimer();
 				//テンポを取得
 				MUSICINFO mi;
 				org_data.GetMusicInfo(&mi);
@@ -181,37 +182,13 @@ BOOL CALLBACK DialogPlayer(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lPara
 				org_data.SetPlayPointer(p);
 			}
 			SetFocus(hWnd);
-//			return 1;
-//			if(timer_sw){//ストップの効果も
-//				//メニューを有効にする。
-//				hmenu = GetMenu(hWnd);
-//				hsubmenu = GetSubMenu(hmenu,0);
-//				EnableMenuItem(hmenu,0,MF_BYPOSITION|MF_ENABLED);
-//				EnableMenuItem(hmenu,1,MF_BYPOSITION|MF_ENABLED);
-//				EnableMenuItem(hmenu,2,MF_BYPOSITION|MF_ENABLED);
-//				//EnableMenuItem(hmenu,5,MF_BYPOSITION|MF_ENABLED);
-//				EnableMenuItem(hmenu,4,MF_BYPOSITION|MF_ENABLED);
-//				EnableMenuItem(hmenu,3,MF_BYPOSITION|MF_ENABLED);
-//				EnableMenuItem(hmenu,6,MF_BYPOSITION|MF_ENABLED);
-//				EnableMenuItem(hmenu,7,MF_BYPOSITION|MF_ENABLED);
-//				EnableMenuItem(hmenu,8,MF_BYPOSITION|MF_ENABLED);
-//				DragAcceptFiles(hWnd,TRUE);//ドラッグ許可
-//				org_data.GetMusicInfo(&mi);
-//				Rxo_StopAllSoundNow();	// 2010.11.30 C
-//				/*
-//				for(int i = 0; i < MAXMELODY; i++)
-//					PlayOrganObject(NULL,2 ,i,NULL);
-//					*/
-//				QuitMMTimer();
-//				timer_sw = 0;
-//				SetFocus(hWnd);
-//			}
 			if(LOWORD(wParam) == IDC_START){
 //				PlayOrganKey(36,9,1000);
 				SetDlgItemText(hdwnd,IDE_VIEWMEAS,"0");
 				SetDlgItemText(hdwnd,IDE_VIEWXPOS,"0");
 				scr_data.SetHorzScroll(0);
 				org_data.SetPlayPointer(0);//頭出し
+				FlagsMoveActivate(0);
 				SetFocus(hWnd);
 			}
 			return 1;
@@ -249,22 +226,115 @@ BOOL CALLBACK DialogPlayer(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lPara
 				SetDlgItemText(hdwnd, IDE_VIEWXPOS, str);
 				scr_data.SetHorzScroll(mi.end_x);
 				org_data.SetPlayPointer(mi.end_x);//頭出し
+				FlagsMoveActivate(mi.end_x);
 				SetFocus(hWnd);
 			}
 			return 1;
 		case IDC_LEFT:
+			if (timer_sw) {
+				//メニューを有効にする。
+				hmenu = GetMenu(hWnd);
+				hsubmenu = GetSubMenu(hmenu, 0);
+				EnableMenuItem(hmenu, 0, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 1, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 2, MF_BYPOSITION | MF_ENABLED);
+				//EnableMenuItem(hmenu,5,MF_BYPOSITION|MF_ENABLED);
+				EnableMenuItem(hmenu, 4, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 3, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 6, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 7, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 8, MF_BYPOSITION | MF_ENABLED);
+				DragAcceptFiles(hWnd, TRUE);//ドラッグ許可
+				org_data.GetMusicInfo(&mi);
+				QuitMMTimer(); // Quit timer first
+				Rxo_StopAllSoundNow();	// 2010.11.30 C
+				/*
+				for(int i = 0; i < MAXMELODY; i++)
+					PlayOrganObject(NULL,2 ,i,NULL);
+					*/
+				timer_sw = 0;
+			}
 			scr_data.HorzScrollProc(SB_PAGELEFT);
 			SetFocus(hWnd);
 			return 1;
 		case IDC_RIGHT:
+			if (timer_sw) {
+				//メニューを有効にする。
+				hmenu = GetMenu(hWnd);
+				hsubmenu = GetSubMenu(hmenu, 0);
+				EnableMenuItem(hmenu, 0, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 1, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 2, MF_BYPOSITION | MF_ENABLED);
+				//EnableMenuItem(hmenu,5,MF_BYPOSITION|MF_ENABLED);
+				EnableMenuItem(hmenu, 4, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 3, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 6, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 7, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 8, MF_BYPOSITION | MF_ENABLED);
+				DragAcceptFiles(hWnd, TRUE);//ドラッグ許可
+				org_data.GetMusicInfo(&mi);
+				QuitMMTimer(); // Quit timer first
+				Rxo_StopAllSoundNow();	// 2010.11.30 C
+				/*
+				for(int i = 0; i < MAXMELODY; i++)
+					PlayOrganObject(NULL,2 ,i,NULL);
+					*/
+				timer_sw = 0;
+			}
 			scr_data.HorzScrollProc(SB_PAGERIGHT);
 			SetFocus(hWnd);
 			return 1;
 		case IDC_LEFTSTEP:
+			if (timer_sw) {
+				//メニューを有効にする。
+				hmenu = GetMenu(hWnd);
+				hsubmenu = GetSubMenu(hmenu, 0);
+				EnableMenuItem(hmenu, 0, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 1, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 2, MF_BYPOSITION | MF_ENABLED);
+				//EnableMenuItem(hmenu,5,MF_BYPOSITION|MF_ENABLED);
+				EnableMenuItem(hmenu, 4, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 3, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 6, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 7, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 8, MF_BYPOSITION | MF_ENABLED);
+				DragAcceptFiles(hWnd, TRUE);//ドラッグ許可
+				org_data.GetMusicInfo(&mi);
+				QuitMMTimer(); // Quit timer first
+				Rxo_StopAllSoundNow();	// 2010.11.30 C
+				/*
+				for(int i = 0; i < MAXMELODY; i++)
+					PlayOrganObject(NULL,2 ,i,NULL);
+					*/
+				timer_sw = 0;
+			}
 			scr_data.HorzScrollProc(SB_LINELEFT);
 			SetFocus(hWnd);
 			return 1;
 		case IDC_RIGHTSTEP:
+			if (timer_sw) {
+				//メニューを有効にする。
+				hmenu = GetMenu(hWnd);
+				hsubmenu = GetSubMenu(hmenu, 0);
+				EnableMenuItem(hmenu, 0, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 1, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 2, MF_BYPOSITION | MF_ENABLED);
+				//EnableMenuItem(hmenu,5,MF_BYPOSITION|MF_ENABLED);
+				EnableMenuItem(hmenu, 4, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 3, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 6, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 7, MF_BYPOSITION | MF_ENABLED);
+				EnableMenuItem(hmenu, 8, MF_BYPOSITION | MF_ENABLED);
+				DragAcceptFiles(hWnd, TRUE);//ドラッグ許可
+				org_data.GetMusicInfo(&mi);
+				QuitMMTimer(); // Quit timer first
+				Rxo_StopAllSoundNow();	// 2010.11.30 C
+				/*
+				for(int i = 0; i < MAXMELODY; i++)
+					PlayOrganObject(NULL,2 ,i,NULL);
+					*/
+				timer_sw = 0;
+			}
 			scr_data.HorzScrollProc(SB_LINERIGHT);
 			SetFocus(hWnd);
 			return 1;
