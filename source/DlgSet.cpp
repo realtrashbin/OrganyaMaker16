@@ -40,6 +40,7 @@ extern long uf, lf;
 
 extern unsigned short OrgFlag[ALLOCFLAG][5];
 extern unsigned short OrgFlagUndo[ALLOCFLAG][3];
+extern char OrgFlagDlg;
 
 int volChangeLength = 10;
 bool volChangeUseNoteLength = true;
@@ -1800,30 +1801,56 @@ BOOL CALLBACK DialogFlags(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 	switch (message) {
 	case WM_INITDIALOG: {
 		org_data.GetMusicInfo(&mi);
-		itoa(mi.tdata[org_data.track].freq, str, 10);
-		SetDlgItemText(hdwnd, IDC_FWAIT, str);
-		SetDlgItemText(hdwnd, IDC_FTRACK, TrackCode[org_data.track]);
-		CheckDlgButton(hdwnd, IDC_TRACKCHANGE, BST_CHECKED);
-		SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_RESETCONTENT, 0, 0);//èâä˙âª
+		if (OrgFlagDlg == -1)
+		{
+			itoa(mi.tdata[org_data.track].freq, str, 10);
+			SetDlgItemText(hdwnd, IDC_FWAIT, str);
+			SetDlgItemText(hdwnd, IDC_FTRACK, TrackCode[org_data.track]);
+			CheckDlgButton(hdwnd, IDC_TRACKCHANGE, BST_CHECKED);
+			SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_RESETCONTENT, 0, 0);//èâä˙âª
+		}
+		else {
+			if (OrgFlag[OrgFlagDlg][4] == NULL) itoa(mi.tdata[org_data.track].freq, str, 10);
+			else itoa(OrgFlag[OrgFlagDlg][4], str, 10);
+			SetDlgItemText(hdwnd, IDC_FWAIT, str);
+			SetDlgItemText(hdwnd, IDC_FTRACK, TrackCode[org_data.track]);
+			if (OrgFlag[OrgFlagDlg][0] == 1)CheckDlgButton(hdwnd, IDC_TRACKCHANGE, BST_CHECKED);
+			else CheckDlgButton(hdwnd, IDC_WAITCHANGE, BST_CHECKED);
+			if (OrgFlag[OrgFlagDlg][3] == 1) CheckDlgButton(hdwnd, IDC_FPIPI, BST_CHECKED);
+			SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_RESETCONTENT, 0, 0); }
 		if (org_data.track < MAXMELODY)
 		{
 			for (i = 0; i < MAXWAVE; i++) {
-				if (i == mi.tdata[org_data.track].wave_no) {
-					sprintf(str, MessageString[IDS_STRING117], i);	// 2010.09.30 D "Wave-%02d*"
+				if (OrgFlagDlg == -1) {
+					if (i == mi.tdata[org_data.track].wave_no) {
+						sprintf(str, MessageString[IDS_STRING117], i);	// 2010.09.30 D "Wave-%02d*"
+					}
+					else {
+						sprintf(str, MessageString[IDS_STRING118], i);	// 2010.09.30 D "Wave-%02d"
+					}
+					SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_ADDSTRING, 0, (LPARAM)str);
+					SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_SETCURSEL, mi.tdata[org_data.track].wave_no, 0);
 				}
 				else {
-					sprintf(str, MessageString[IDS_STRING118], i);	// 2010.09.30 D "Wave-%02d"
+					if (i == OrgFlag[OrgFlagDlg][2]) {
+						sprintf(str, MessageString[IDS_STRING117], i);	// 2010.09.30 D "Wave-%02d*"
+					}
+					else {
+						sprintf(str, MessageString[IDS_STRING118], i);	// 2010.09.30 D "Wave-%02d"
+					}
+					SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_ADDSTRING, 0, (LPARAM)str);
+					SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_SETCURSEL, OrgFlag[OrgFlagDlg][2], 0);
 				}
-				SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_ADDSTRING, 0, (LPARAM)str);
 			}
-			SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_SETCURSEL, mi.tdata[org_data.track].wave_no, 0);
+			
 		}
 		else
 		{
 			for (i = 0; i < NUMDRAMITEM; i++) {
 				SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_ADDSTRING, 0, (LPARAM)dram_name[Wave_no_to_List_no[i]]);
 			}
-				SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_SETCURSEL, List_no_to_Wave_no[mi.tdata[org_data.track].wave_no], 0);
+			if (OrgFlagDlg == -1) SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_SETCURSEL, List_no_to_Wave_no[mi.tdata[org_data.track].wave_no], 0);
+			else SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_SETCURSEL, List_no_to_Wave_no[OrgFlag[OrgFlagDlg][1]], 0);
 		}
 		EnableDialogWindow(FALSE);
 		return 1;
@@ -1842,34 +1869,65 @@ BOOL CALLBACK DialogFlags(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 				CheckDlgButton(hdwnd, IDC_WAITCHANGE, BST_CHECKED);
 				CheckDlgButton(hdwnd, IDC_TRACKCHANGE, BST_UNCHECKED);
 			}
-			else MessageBox(hdwnd, "Frequency does not apply to drams.", "Flag(Warning)", MB_OK);
+			else { MessageBox(hdwnd, "Frequency does not apply to drams.", "Flag(Warning)", MB_OK); CheckDlgButton(hdwnd, IDC_WAITCHANGE, BST_UNCHECKED); }
 			return TRUE;
 		}
 		case IDOK: {
-			for (i = 0; i < ALLOCFLAG; i++)
-			{
-				if (OrgFlag[i][0] == NULL)
+
+			if (OrgFlagDlg == -1) {
+				for (i = 0; i < ALLOCFLAG; i++)
 				{
-					if (!IsDlgButtonChecked(hdwnd, IDC_WAITCHANGE)) //Track Change
+					if (OrgFlag[i][0] == NULL)
 					{
-						OrgFlag[i][0] = 1;
-						OrgFlag[i][1] = org_data.track;
-						if (org_data.track < MAXMELODY) OrgFlag[i][2] = SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_GETCURSEL, 0, 0);
-						else { OrgFlag[i][2] = Wave_no_to_List_no[SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_GETCURSEL, 0, 0)]; }
-						if (IsDlgButtonChecked(hdwnd,IDC_FPIPI) && org_data.track < MAXMELODY)
+						if (!IsDlgButtonChecked(hdwnd, IDC_WAITCHANGE)) //Track Change
 						{
-							OrgFlag[i][3] = 1;
+							OrgFlag[i][0] = 1;
+							OrgFlag[i][1] = org_data.track;
+							if (org_data.track < MAXMELODY) OrgFlag[i][2] = SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_GETCURSEL, 0, 0);
+							else { OrgFlag[i][2] = Wave_no_to_List_no[SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_GETCURSEL, 0, 0)]; }
+							if (IsDlgButtonChecked(hdwnd, IDC_FPIPI) && org_data.track < MAXMELODY)
+							{
+								OrgFlag[i][3] = 1;
+							}
+							else if (org_data.track >= MAXMELODY && IsDlgButtonChecked(hdwnd, IDC_FPIPI) == TRUE)MessageBox(hWnd, "Pipi does not apply to Drams.", "Flag(Warning)", MB_OK);
 						}
-						else if (org_data.track >= MAXMELODY && IsDlgButtonChecked(hdwnd, IDC_FPIPI)) MessageBox(hWnd, "Pipi does not apply to Drams.", "Flag(Warning)", MB_OK);
+						else
+						{
+							OrgFlag[i][0] = 2;
+							OrgFlag[i][1] = org_data.track;
+							GetDlgItemText(hdwnd, IDC_FWAIT, str, 5);
+							OrgFlag[i][4] = atol(str);
+						}
+						break;
 					}
-					else
+				}
+			}
+			else {
+				if (!IsDlgButtonChecked(hdwnd, IDC_WAITCHANGE)) //Track Change
+				{
+					OrgFlag[OrgFlagDlg][0] = 1;
+					OrgFlag[OrgFlagDlg][1] = org_data.track;
+					if (org_data.track < MAXMELODY) OrgFlag[OrgFlagDlg][2] = SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_GETCURSEL, 0, 0);
+					else { OrgFlag[OrgFlagDlg][2] = Wave_no_to_List_no[SendDlgItemMessage(hdwnd, IDC_FWAVE, LB_GETCURSEL, 0, 0)]; }
+					if (IsDlgButtonChecked(hdwnd, IDC_FPIPI) && org_data.track < MAXMELODY)
 					{
-						OrgFlag[i][0] = 2;
-						OrgFlag[i][1] = org_data.track;
-						GetDlgItemText(hdwnd, IDC_FWAIT, str, 5);
-						OrgFlag[i][4] = atol(str);
+						OrgFlag[OrgFlagDlg][3] = 1;
 					}
-					break;
+					else if (org_data.track >= MAXMELODY && IsDlgButtonChecked(hdwnd, IDC_FPIPI) == TRUE)MessageBox(hWnd, "Pipi does not apply to Drams.", "Flag(Warning)", MB_OK);
+				}
+				else
+				{
+					OrgFlag[OrgFlagDlg][0] = 2;
+					OrgFlag[OrgFlagDlg][1] = org_data.track;
+					OrgFlag[OrgFlagDlg][2] = 0;
+					OrgFlag[OrgFlagDlg][3] = 0;
+					GetDlgItemText(hdwnd, IDC_FWAIT, str, 5);
+					OrgFlag[OrgFlagDlg][4] = atol(str);
+					if (OrgFlag[OrgFlagDlg][4] > 0x7530)
+					{
+						MessageBox(hWnd, "Frequency cannot be above 30,000.", "Flag(Warning)", MB_OK);
+						return TRUE;
+					}
 				}
 			}
 			org_data.GetMusicInfo(&mi);

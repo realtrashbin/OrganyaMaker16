@@ -34,6 +34,7 @@ char FlagFinder(long x,bool clearflag)
 	}
 	if (clearflag == true)
 	{
+		OrgFlagX[i] = 0;
 		for (char j = 0; j < 4; j++)
 		{
 			OrgFlag[i][j] = 0;
@@ -45,7 +46,7 @@ char FlagFinder(long x,bool clearflag)
 void FlagsMoveActivate(long x)
 {
 	char i;
-	char str[20];
+	//char str[20];
 	MUSICINFO mi;
 	
 	for (i = 0; i < MAXTRACK; i++)
@@ -64,9 +65,7 @@ void FlagsMoveActivate(long x)
 	
 	for (i = 0; i < ALLOCFLAG; i++)
 	{
-			ltoa(OrgFlagX[i], str, 10);
-			ltoa(x, str, 10);
-		if ((OrgFlagX[i] <= x) && (x != 0))
+		if ((x >= OrgFlagX[i]) && (x != 0 && OrgFlagX[i] != 0))
 		{
 			FunctionChange(i);
 		}
@@ -81,6 +80,7 @@ void FunctionChange(unsigned char flag)
 		case 1:
 		{
 			org_data.GetMusicInfo(&mi);
+			Rxo_StopTrackSound(OrgFlag[flag][1]);
 			if (OrgFlag[flag][1] < MAXMELODY) {
 				mi.tdata[OrgFlag[flag][1]].wave_no = OrgFlag[flag][2];
 				mi.tdata[OrgFlag[flag][1]].pipi = OrgFlag[flag][3];
@@ -89,6 +89,7 @@ void FunctionChange(unsigned char flag)
 			}
 			else
 			{
+				Rxo_StopTrackSound(OrgFlag[flag][1]);
 				mi.tdata[OrgFlag[flag][1]].wave_no = OrgFlag[flag][2];
 				InitDramObject(OrgFlag[flag][2], OrgFlag[flag][1] - MAXMELODY);
 				org_data.SetMusicInfo(&mi, SETWAVE);
@@ -97,6 +98,7 @@ void FunctionChange(unsigned char flag)
 		}
 		case 2:
 		{
+			Rxo_StopTrackSound(OrgFlag[flag][1]);
 			org_data.GetMusicInfo(&mi);
 			mi.tdata[OrgFlag[flag][1]].freq = OrgFlag[flag][4];
 			org_data.SetMusicInfo(&mi, SETFREQ);

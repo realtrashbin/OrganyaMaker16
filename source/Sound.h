@@ -52,6 +52,7 @@ void PlayDramObject(unsigned char key, int mode,char track);
 
 void Rxo_ShowDirectSoundObject(HWND hwnd);
 void Rxo_StopAllSoundNow(void);
+void Rxo_StopTrackSound(char Track);
 
 void Rxo_PlayKey(unsigned char key,char track,DWORD freq, int Phase);
 void Rxo_StopKey(unsigned char key,char track, int Phase);
