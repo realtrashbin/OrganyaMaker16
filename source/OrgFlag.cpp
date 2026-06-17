@@ -45,7 +45,7 @@ char FlagFinder(long x,bool clearflag)
 void FlagsMoveActivate(long x)
 {
 	char i;
-	char str[20];
+	//char str[20];
 	MUSICINFO mi;
 	
 	for (i = 0; i < MAXTRACK; i++)
@@ -64,9 +64,7 @@ void FlagsMoveActivate(long x)
 	
 	for (i = 0; i < ALLOCFLAG; i++)
 	{
-			ltoa(OrgFlagX[i], str, 10);
-			ltoa(x, str, 10);
-		if ((OrgFlagX[i] <= x) && (x != 0))
+		if ((x >= OrgFlagX[i]) && (x != 0 && OrgFlagX[i] != 0))
 		{
 			FunctionChange(i);
 		}

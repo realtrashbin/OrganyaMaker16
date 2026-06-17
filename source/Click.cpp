@@ -7,6 +7,7 @@
 #include <string.h>//sprintfテスト用
 #include "rxoFunction.h"
 #include "resource.h"
+#include "TrackFlag.h"
 
 //クリックされた時の処理
 extern char timer_sw;//再生スイッチ
@@ -41,6 +42,9 @@ void ShowStatusMessage(void);
 extern void ChangeTrack(HWND hdwnd, int iTrack);
 extern void SetTitlebarText();
 extern void TitlebarRefresh();
+extern long OrgFlagX[ALLOCFLAG];
+extern unsigned short OrgFlag[ALLOCFLAG][5];
+char OrgFlagDlg;
 
 int iDragMode = 0;	//ﾄﾞﾗｯｸﾞで音符を伸ばす
 int alt_down = 0;
@@ -402,12 +406,20 @@ void ClickProcL(WPARAM wParam, LPARAM lParam)
 	{
 		mouse_x = (mouse_x - KEYWIDTH) / NoteWidth + scr_h;
 		mouse_y = (WHeight + (351 + 5) - WHNM - mouse_y) / 5;
-		
+		for (char i = 0; i < ALLOCFLAG; i++)
+		{
+			if (OrgFlagX[i] == mouse_x && OrgFlag[i][1] == org_data.track)
+			{
+				OrgFlagDlg = i;
+				break;
+			}
+			else OrgFlagDlg = -1;
+		}
 		DialogBox(hInst, "DLGFLAGS", hWnd, DialogFlags);
 		if (FlagR == true && org_data.GetFlagUsed(true) == true)
 		{
 			if ((mouse_x != Last_mouse_x) || (mouse_y != Last_mouse_y))SetUndo();
-			org_data.SetFlag(mouse_x, (unsigned char)mouse_y);
+			if (org_data.SetFlag(mouse_x, (unsigned char)mouse_y) == FALSE) MessageBox(hWnd, "This flag can't be placed there!", "Flag(Error)", MB_OK);
 		}
 		else if (org_data.GetFlagUsed(true) == false)
 		{

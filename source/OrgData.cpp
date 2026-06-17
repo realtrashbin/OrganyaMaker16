@@ -171,7 +171,11 @@ BOOL OrgData::SetNote(long x,unsigned char y, int DragMode)
 		info.tdata[track].note_list = note;
 		note->from = NULL;
 		note->to = NULL;
-		note->flag = FLAGDUMMY;
+		for (char i = 0; i < ALLOCFLAG; i++)
+		{
+			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			else note->flag = FLAGDUMMY;
+		}
 		note->length = 1;
 		note->pan = def_pan[track];
 		note->volume = def_volume[track];
@@ -194,7 +198,11 @@ BOOL OrgData::SetNote(long x,unsigned char y, int DragMode)
 		}
 		else p->from->to = note;//じゃなければ前のやつの次に
 		p->from = note;
-		note->flag = FLAGDUMMY;
+		for (char i = 0; i < ALLOCFLAG; i++)
+		{
+			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			else note->flag = FLAGDUMMY;
+		}
 		note->length = 1;
 		note->pan = def_pan[track];
 		note->volume = def_volume[track];
@@ -247,7 +255,11 @@ BOOL OrgData::SetNote(long x,unsigned char y, int DragMode)
 		note->from = p;
 		p->to = note;
 		note->to = NULL;
-		note->flag = FLAGDUMMY;
+		for (char i = 0; i < ALLOCFLAG; i++)
+		{
+			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			else note->flag = FLAGDUMMY;
+		}
 		note->length = 1;
 		note->pan = def_pan[track];
 		note->volume = def_volume[track];
@@ -268,6 +280,7 @@ BOOL OrgData::CutNote(long x,unsigned char y)
 {
 	NOTELIST *p;//リストを指すポインター
 	//頭から検索
+	FlagFinder(x, true);
 	if(info.tdata[track].note_list == NULL)return FALSE;
 	p = info.tdata[track].note_list;
 	while(p != NULL && p->x < x)p = p->to;
@@ -408,7 +421,11 @@ BOOL OrgData::SetPan(long x,unsigned char y) // Mouse X & Y
 		note->to = NULL;
 		note->length = 1;
 		note->pan = y;
-		note->flag = FLAGDUMMY;
+		for (char i = 0; i < ALLOCFLAG; i++)
+		{
+			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			else note->flag = FLAGDUMMY;
+		}
 		note->volume = VOLDUMMY;
 		note->x = x;
 		note->y = KEYDUMMY;
@@ -431,7 +448,11 @@ BOOL OrgData::SetPan(long x,unsigned char y) // Mouse X & Y
 		note->length = 1;
 		note->pan = y;
 		note->volume = VOLDUMMY;
-		note->flag = FLAGDUMMY;
+		for (char i = 0; i < ALLOCFLAG; i++)
+		{
+			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			else note->flag = FLAGDUMMY;
+		}
 		note->x = x;
 		note->y = KEYDUMMY;
 	}
@@ -447,7 +468,11 @@ BOOL OrgData::SetPan(long x,unsigned char y) // Mouse X & Y
 		note->length = 1;
 		note->pan = y;
 		note->volume = VOLDUMMY;
-		note->flag = FLAGDUMMY;
+		for (char i = 0; i < ALLOCFLAG; i++)
+		{
+			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			else note->flag = FLAGDUMMY;
+		}
 		note->x = x;
 		note->y = KEYDUMMY;
 	}
@@ -485,6 +510,7 @@ BOOL OrgData::CutPan(long x,unsigned char y)
 {
 	NOTELIST *p;//リストを指すポインター
 	//頭から検索
+	FlagFinder(x, true);
 	if(info.tdata[track].note_list == NULL)return FALSE;
 	p = info.tdata[track].note_list;
 	while(p != NULL && p->x < x)p = p->to;
@@ -519,7 +545,11 @@ BOOL OrgData::SetVolume(long x,unsigned char y)
 		note->length = 1;
 		note->pan = PANDUMMY;
 		note->volume = y;
-		note->flag = FLAGDUMMY;
+		for (char i = 0; i < ALLOCFLAG; i++)
+		{
+			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			else note->flag = FLAGDUMMY;
+		}
 		note->x = x;
 		note->y = KEYDUMMY;
 		return TRUE;
@@ -540,7 +570,11 @@ BOOL OrgData::SetVolume(long x,unsigned char y)
 		p->from = note;
 		note->length = 1;
 		note->pan = PANDUMMY;
-		note->flag = FLAGDUMMY;
+		for (char i = 0; i < ALLOCFLAG; i++)
+		{
+			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			else note->flag = FLAGDUMMY;
+		}
 		note->volume = y;
 		note->x = x;
 		note->y = KEYDUMMY;
@@ -562,7 +596,11 @@ BOOL OrgData::SetVolume(long x,unsigned char y)
 		note->to = NULL;
 		note->length = 1;
 		note->pan = PANDUMMY;
-		note->flag = FLAGDUMMY;
+		for (char i = 0; i < ALLOCFLAG; i++)
+		{
+			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			else note->flag = FLAGDUMMY;
+		}
 		note->volume = y;
 		note->x = x;
 		note->y = KEYDUMMY;
@@ -591,7 +629,11 @@ BOOL OrgData::SetVolume2(long x,unsigned char y,long fade)
 		note->to = NULL;
 		note->length = 1;
 		note->pan = PANDUMMY;
-		note->flag = FLAGDUMMY;
+		for (char i = 0; i < ALLOCFLAG; i++)
+		{
+			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			else note->flag = FLAGDUMMY;
+		}
 		note->volume = y;
 		note->x = x;
 		note->y = KEYDUMMY;
@@ -617,7 +659,11 @@ BOOL OrgData::SetVolume2(long x,unsigned char y,long fade)
 		p->from = note;
 		note->length = 1;
 		note->pan = PANDUMMY;
-		note->flag = FLAGDUMMY;
+		for (char i = 0; i < ALLOCFLAG; i++)
+		{
+			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			else note->flag = FLAGDUMMY;
+		}
 		switch(fade){
 		case 0: //直線的減衰
 			dv = (double)(p->x - lastx)/(double)lastlength;
@@ -662,7 +708,11 @@ BOOL OrgData::SetVolume2(long x,unsigned char y,long fade)
 		p->to = note;
 		note->to = NULL;
 		note->length = 1;
-		note->flag = FLAGDUMMY;
+				for (char i = 0; i < ALLOCFLAG; i++)
+		{
+					if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+					else note->flag = FLAGDUMMY;
+		}
 		note->pan = PANDUMMY;
 		note->volume = y;
 		note->x = x;
@@ -678,6 +728,7 @@ BOOL OrgData::CutVolume(long x,unsigned char y)
 {
 	NOTELIST *p;//リストを指すポインター
 	//頭から検索
+	FlagFinder(x, true);
 	if(info.tdata[track].note_list == NULL)return FALSE;
 	p = info.tdata[track].note_list;
 	while(p != NULL && p->x < x)p = p->to;
@@ -700,6 +751,13 @@ BOOL OrgData::SetFlag(long x, unsigned char y)
 	NOTELIST* note;//生成NOTE
 	NOTELIST* p;//リストを指すポインター
 	unsigned char i = uf;
+	bool oneflag=false;
+	OrgFlagX[i - 1] = x;
+	for (char j = 0; j < ALLOCFLAG; j++)
+	{
+		if (OrgFlagX[j] == x && oneflag == true) return FALSE;
+		if (OrgFlagX[j] == x) oneflag = true;
+	}
 	//未使用NOTEを検索
 	if ((note = SearchNote(info.tdata[track].note_p)) == NULL)return FALSE;
 	//初音符ならリストに登録
@@ -712,7 +770,6 @@ BOOL OrgData::SetFlag(long x, unsigned char y)
 		note->flag = x;
 		note->volume = VOLDUMMY;
 		note->x = x;
-		OrgFlagX[i-1] = x;
 		FlagFinder(x, false);
 		note->y = KEYDUMMY;
 		return TRUE;
@@ -736,7 +793,6 @@ BOOL OrgData::SetFlag(long x, unsigned char y)
 		note->volume = VOLDUMMY;
 		note->flag = x;
 		note->x = x;
-		OrgFlagX[i-1] = x;
 		FlagFinder(x, false);
 		note->y = KEYDUMMY;
 	}
@@ -754,7 +810,6 @@ BOOL OrgData::SetFlag(long x, unsigned char y)
 		note->volume = VOLDUMMY;
 		note->flag = x;
 		note->x = x;
-		OrgFlagX[i-1] = x;
 		FlagFinder(x, false);
 		note->y = KEYDUMMY;
 	}

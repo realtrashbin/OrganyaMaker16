@@ -987,6 +987,35 @@ void Rxo_StopAllSoundNow(void)
 	for (i = 0; i < MAXTRACK; i++)
 		old_key[i]=255; //2014.05.02 A ‚±‚ê‚Å“ª‚ª•Ï‚È‰¹‚É‚È‚ç‚È‚­‚·‚éB
 }
+void Rxo_StopTrackSound(char Track)
+{
+	int i, j, k;
+	for (i = 0; i < SE_MAX; i++)
+		if (lpSECONDARYBUFFER[i] != NULL) {
+			S_StopSound(lpSECONDARYBUFFER[i]);
+			S_RewindSound(lpSECONDARYBUFFER[i]);
+		}
+	i = Track;
+	if (i < MAXMELODY)
+	{
+		for (j = 0; j < 8; j++) {
+			for (k = 0; k < 2; k++) {
+				if (lpORGANBUFFER[i][j][k] != NULL) {
+					S_StopSound(lpORGANBUFFER[i][j][k]);
+					S_RewindSound(lpORGANBUFFER[i][j][k]);
+				}
+			}
+		}
+	}
+		else {
+			if (lpDRAMBUFFER[i] != NULL) {
+				S_StopSound(lpDRAMBUFFER[i]);
+				S_RewindSound(lpDRAMBUFFER[i]);
+			}
+		}
+		old_key[i] = 255; //2014.05.02 A ‚±‚ê‚Å“ª‚ª•Ï‚È‰¹‚É‚È‚ç‚È‚­‚·‚éB
+}
+
 
 extern int sMetronome;
 
