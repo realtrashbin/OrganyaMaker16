@@ -20,6 +20,7 @@ RECT note_rect[] = {
 	{ 0, 0, 16, 5},//Volume/Panning symbol
 	{  0, 6, 15, 16},//Repeat symbol 1
 	{ 16, 6, 31, 16},//Repeat symbol 2
+	{ 32, 0, 47, 7} //FLAG symbol
 };
 
 RECT note_blue_rect[]={ //殖MPNOTE
@@ -141,15 +142,12 @@ RECT note_tail_rect[]={ //しっぽ
 	{163, 156, 179, 159}, //Beige Note Tail
 	
 };
-RECT msc_rect[] = { //BMP MUSIC(Rect for keys on piano)
-	{  0,  0, 64,144+16},//鍵盤
-	{ 64,  0, 80,144+16},//小節ライン
-	{ 80,  0, 96,144+16},//一拍ライン
-	{ 96,  0,112,144+16},//1/16ライン
-	{112+  0,  0,112+ 64,144+16},//鍵盤
-	{112+ 64,  0,112+ 80,144+16},//小節ライン
-	{112+ 80,  0,112+ 96,144+16},//一拍ライン
-	{112+ 96,  0,112+112,144+16},//1/16ライン
+RECT msc_rect[] = { //Other BMP stuff
+	{0,0,64,160},// Pan, Volume, Select
+	{0,161,65,175},//FLAG
+	{0, 109, 63, 125}, //Current Select
+	{0, 125, 63, 196}, //Active Pan
+	{64, 125, 127, 196} //Active Volume
 };
 RECT num_rect[] = {
 	{  0,  0,  8, 12}, //White Numbers
@@ -163,7 +161,7 @@ RECT num_rect[] = {
 	{ 64,  0, 72, 12},
 	{ 72,  0, 80, 12},
 
-	{  0, 12,  8, 24}, //Blue Numbers
+	{  0, 12,  8, 24}, //Black Numbers
 	{  8, 12, 16, 24},
 	{ 16, 12, 24, 24},
 	{ 24, 12, 32, 24},
@@ -184,10 +182,6 @@ RECT rc_SelArea[] ={
 	{53, 93, 68, 104}, //Select all
 	{53, 77, 69, 88}, //Select one note
 };
-
-RECT rc_CurrentSelect = {0, 109, 63, 125}; //2014.04.30
-RECT rc_ActivePAN = {0, 125, 63, 196}; //2014.05.01 A
-RECT rc_ActiveVOL = {64, 125, 127, 196}; //2014.05.01 A
 
 RECT rc_TCPY[]={ 
 	{0,19,15,24}, //Gray Note
@@ -288,18 +282,18 @@ void OrgData::PutNumber(void)
 		if (k1000 > 0) {
 			x = k * i * NoteWidth + 0 + KEYWIDTH + 1 + off;
 			if (x >= KEYWIDTH)
-				PutBitmap(x, 0, &num_rect[k1000], BMPNUMBER);
+				PutBitmap(x, 15, &num_rect[k1000], BMPNUMBER);
 			rr = 8;
 		}
 		x = k * i * NoteWidth + 0 + rr + KEYWIDTH + 1 + off;
 		if (x >= KEYWIDTH)
-			PutBitmap(x, 0, &num_rect[k100], BMPNUMBER);
+			PutBitmap(x, 15, &num_rect[k100], BMPNUMBER);
 		x = k * i * NoteWidth + 8 + rr + KEYWIDTH + 1 + off;
 		if (x >= KEYWIDTH)
-			PutBitmap(x, 0, &num_rect[k10], BMPNUMBER);
+			PutBitmap(x, 15, &num_rect[k10], BMPNUMBER);
 		x = k * i * NoteWidth + 16 + rr + KEYWIDTH + 1 + off;
 		if (x >= KEYWIDTH)
-			PutBitmap(x, 0, &num_rect[scalepos], BMPNUMBER);
+			PutBitmap(x, 15, &num_rect[scalepos], BMPNUMBER);
 		if(WHeight>550){
 			rr = 0;
 			if (k1000 > 0) {
@@ -425,7 +419,11 @@ void OrgData::PutNotes(int TPCY, bool vol)
 						ypos = WHeight + 426 - WHNM - (p->volume / 4);//ボリューム
 						PutBitmapCenter(xpos, ypos, &note_rect[0], BMPNOTE);
 					}
+					if (p->flag != FLAGDUMMY) {
+						PutBitmapCenter(xpos, 4, &note_rect[3], BMPNOTE);
+					}
 				}
+
 				p = p->to;
 			}
 		}
@@ -521,6 +519,9 @@ void OrgData::PutNotes2(int TPCY, bool vol)
 						ypos = WHeight + 426 - WHNM - (p->volume / 4);//ボリューム
 						PutBitmapCenter(xpos, ypos, &note_rect[0], BMPNOTE);
 					}
+					if (p->flag != FLAGDUMMY) {
+						PutBitmapCenter(xpos, 4, &note_rect[3], BMPNOTE);
+					}
 				}
 				p = p->to;
 			}
@@ -609,18 +610,26 @@ void OrgData::PutMusic(void)
 
 	for (int i = 0; i < (WWidth / NoteWidth) + (info.line * info.dot) + 1; i++) { // 15
 		if (i % (info.line * info.dot) == 0){
-			brect = { 64, 0, 64 + NoteWidth, 144 + 16 };
-			PutBitmap(x + i * NoteWidth, WHeight + 288 - WHNM, &brect, BMPPAN);
+			brect = { 64, 0, 64 + NoteWidth, 160};
+			PutBitmap(x + i * NoteWidth, WHeight + 288 - WHNM, &brect, BMPPAN); //New num
+			brect = { 64, 161, 64 + NoteWidth, 175 };
+			PutBitmap(x + i * NoteWidth,0, &brect, BMPPAN); //New num (FLAG)
 		} else if (i % info.dot == 0) {
-			brect = { 64 + 16, 0, (64 + 16) + NoteWidth, 144 + 16 };
-			PutBitmap(x + i * NoteWidth, WHeight + 288 - WHNM, &brect, BMPPAN);
+			brect = { 80, 0, 80 + NoteWidth, 160 };
+			PutBitmap(x + i * NoteWidth, WHeight + 288 - WHNM, &brect, BMPPAN); //Beat
+			brect = { 80, 161, 80 + NoteWidth, 175 };
+			PutBitmap(x + i * NoteWidth,0, &brect, BMPPAN); //Beat (FLAG)
 		} else {
 			if (NoteWidth >= 8) {
-				brect = { 64 + 32, 0, (64 + 32) + NoteWidth, 144 + 16 };
-				PutBitmap(x + i * NoteWidth, WHeight + 288 - WHNM, &brect, BMPPAN);
+				brect = { 64+32, 0, (64+32) + NoteWidth, 160 };
+				PutBitmap(x + i * NoteWidth, WHeight + 288 - WHNM, &brect, BMPPAN); //Step
+				brect = { 64+32, 161, (64+32) + NoteWidth, 175 };
+				PutBitmap(x + i * NoteWidth,0, &brect, BMPPAN); //Step (FLAG)
 			} else {
-				brect = { 64 + 32 + 1, 0, (64 + 32 + 1) + NoteWidth, 144 + 16 };
-				PutBitmap(x + i * NoteWidth, WHeight + 288 - WHNM, &brect, BMPPAN);
+				brect = { 97, 0, 97 + NoteWidth, 160 };
+				PutBitmap(x + i * NoteWidth, WHeight + 288 - WHNM, &brect, BMPPAN); //No idea
+				brect = { 64 + 32 + 1, 161, (64 + 32 + 1) + NoteWidth, 175 };
+				PutBitmap(x + i * NoteWidth,0, &brect, BMPPAN); //No idea
 			}
 		}
 	}
@@ -646,15 +655,16 @@ void OrgData::PutMusic(void)
 	PutSelectArea();
 
 	PutBitmap(0,WHeight+288-WHNM,&msc_rect[0],BMPPAN);//パン
+	PutBitmap(0, 0, &msc_rect[1], BMPPAN); //FLAG
 
 	if(sACrnt){ //2014.04.30
-		PutBitmap(0,WHeight+288-WHNM+144,&rc_CurrentSelect,BMPNOTE);//範囲選択は常にｶﾚﾝﾄﾄﾗｯｸのとき
+		PutBitmap(0,WHeight+288-WHNM+144,&msc_rect[2],BMPNOTE);//範囲選択は常にｶﾚﾝﾄﾄﾗｯｸのとき
 	}
 	if(iActivatePAN){ //2014.05.01
-		PutBitmap(0,WHeight+288-WHNM,&rc_ActivePAN, BMPNOTE);
+		PutBitmap(0,WHeight+288-WHNM,&msc_rect[3], BMPNOTE);
 	}
 	if(iActivateVOL){ //2014.05.01
-		PutBitmap(0,WHeight+288-WHNM+72,&rc_ActiveVOL, BMPNOTE);
+		PutBitmap(0,WHeight+288-WHNM+72,&msc_rect[4], BMPNOTE);
 	}
 
 	if (timer_sw) {

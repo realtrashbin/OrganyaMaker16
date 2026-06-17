@@ -4,27 +4,31 @@
 #include "Sound.h"
 #include "resource.h"
 #include "Scroll.h"
+#include "TrackFlag.h"
 
+#include <string.h>
+#include <string>
 long oplay_p;
 long play_p;//現在再生位置（キャンバス）
-NOTELIST *np[MAXTRACK];//現在再生準備の音符
+NOTELIST *np[MAXTRACK],*p;//現在再生準備の音符
+MUSICINFO info, *mi;
 long now_leng[MAXMELODY] = {NULL};//再生中音符の長さ
 int s_solo = -1;
 //DWORD lastDrawTime = -1;
 //DWORD drawCatch = 0;
 extern int sMetronome;
 extern int NoteWidth;
+extern unsigned short OrgFlag[ALLOCFLAG][5];
 void OrgData::PlayData(void)
 {
 	char end_cnt = MAXTRACK;
 //	PlaySoundObject(1,1);
 	//メロディの再生
-	for(int i = 0; i < MAXMELODY; i++){
+	for(char i = 0; i < MAXMELODY; i++){
 //	int i = 6;
 		if(np[i] != NULL &&play_p == np[i]->x ){//音が来た。
 			if (s_solo != -1 && s_solo != i)
 				continue;
-
 			if(mute[i] == 0){
 				if(np[i]->y != KEYDUMMY){
 					PlayOrganObject(np[i]->y,-1,i,info.tdata[i].freq, info.tdata[i].pipi);
@@ -33,6 +37,7 @@ void OrgData::PlayData(void)
 			}
 			if(np[i]->pan != PANDUMMY)ChangeOrganPan(np[i]->y,np[i]->pan,i);
 			if(np[i]->volume != VOLDUMMY)ChangeOrganVolume(np[i]->y,np[i]->volume * 100 / 0x7F,i);
+			if (np[i]->flag != FLAGDUMMY)FunctionChange(FlagFinder(np[i]->x,false));
 			np[i] = np[i]->to;//次の音符を指す
 		}
 		if(now_leng[i] == 0 ){
@@ -41,16 +46,19 @@ void OrgData::PlayData(void)
 		if(now_leng[i] > 0)now_leng[i]--;
 	}
 	//ドラムの再生
-	for(int i = MAXMELODY; i < MAXTRACK; i++){
+	for(char i = MAXMELODY; i < MAXTRACK; i++){
 		if (s_solo != -1 && s_solo != i)
 			continue;
 
 		if(np[i] != NULL &&play_p == np[i]->x ){//音が来た。
 			if(np[i]->y != KEYDUMMY){//ならす
-				if(mute[i] == 0)PlayDramObject(np[i]->y,1,i-MAXMELODY);
+				if (mute[i] == 0) {
+					PlayDramObject(np[i]->y, 1, i - MAXMELODY);
+				}
 			}
 			if(np[i]->pan != PANDUMMY)ChangeDramPan(np[i]->pan,i-MAXMELODY);
 			if(np[i]->volume != VOLDUMMY)ChangeDramVolume(np[i]->volume * 100 / 0x7F,i-MAXMELODY);
+			if (np[i]->flag != FLAGDUMMY)FunctionChange(FlagFinder(np[i]->x, false));
 			np[i] = np[i]->to;//次の音符を指す
 		}
 	}
@@ -70,6 +78,7 @@ void OrgData::PlayData(void)
 			//PlaySound("METRO02", GetModuleHandle(NULL), SND_RESOURCE | SND_ASYNC);
 		}
 	}
+
 	oplay_p = play_p;
 	play_p++;
 	if(play_p >= info.end_x) {

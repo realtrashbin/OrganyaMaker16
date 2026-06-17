@@ -19,10 +19,8 @@
 #define MSGSAVEOK		3	//保存完了
 #define MSGLOADOK		3	//読み込み完了
 
-extern char music_file[];
 extern char mus_file[];
 extern HINSTANCE hInst;//インスタンスハンドル
 extern HWND hWnd;//メインウィンドウハンドル
 extern BOOL actApp;//ウインドウのアクティブ
-extern bool OrgFileType;
 extern int  WWidth, WHeight;	//ウィンドウのサイズ

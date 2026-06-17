@@ -1,10 +1,10 @@
 #include "DefOrg.h"
 //編集用構造体///////////////
 typedef struct{//●コピー構造体
-	int track1;//このトラックの
+	char track1;//このトラックの
 	long x1_1;//ここから
 	long x1_2;//ここまでを
-	int track2;//このトラックの
+	char track2;//このトラックの
 	long x2;//ここに
 	long num;//何回
 }NOTECOPY;
@@ -26,6 +26,7 @@ typedef struct NOTELIST{
 	unsigned char y;//音の高さ
 	unsigned char volume;//ヴォリューム
 	unsigned char pan;//パン
+	unsigned char flag;
 }NOTELIST;
 //トラックデータ＊８
 typedef struct{
@@ -93,6 +94,8 @@ typedef struct OrgData{
 		BOOL SetVolume(long x,unsigned char y);//ボリューム音符を配置
 		BOOL SetVolume2(long x,unsigned char y,long fade); //フェードアウト	// 2010.08.17 A
 		BOOL CutVolume(long x,unsigned char y);//ボリューム音符のカット
+		BOOL SetFlag(long x, unsigned char y);
+		BOOL CutFlag(long x, unsigned char y);
 		BOOL EnlargeAllNotes(int Power);//[新]音符をPower倍に引き伸ばす
 		BOOL ShortenAllNotes(int Power);//[新]音符を1/Power倍に縮こめる
 
@@ -103,6 +106,7 @@ typedef struct OrgData{
 		
 
 		void GetNoteUsed(long *use,long *left,char track);//音譜残量等
+		bool GetFlagUsed(bool add);
 		//以下は表示
 		void PutNotes(int TPCY, bool vol);
 		void PutNotes2(int TPCY, bool vol);
@@ -133,8 +137,9 @@ typedef struct OrgData{
 		BOOL SwapTrack(NOTECOPY *pc); //[新]トラックを入れ替える 2014.05.10
 		BOOL ExportMIDIData(char *strMidiFileName, int iRepeat); //MIDIｴｸｽﾎﾟｰﾄ,繰り返し回数 2014.05.11
 
-		unsigned short GetWait(void);
 
 	bool CopyNoteDataToCB(NOTECOPY *nc, int iTrack, int iFullTrack);
+	//bool OrganyaEncoder(char shift);
+	//bool OrganyaDecoder(char shift);
 }ORGDATA;
 extern ORGDATA org_data;

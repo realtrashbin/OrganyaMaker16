@@ -50,6 +50,7 @@ BOOL CALLBACK DialogPan(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogTrans(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogVolume(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogWave(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK DialogWave2(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogPlayer(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogTrack(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogNoteUsed(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -61,7 +62,7 @@ BOOL CALLBACK DialogTheme(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 BOOL CALLBACK DialogWavExport(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogWaveDB(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogDecayLength(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
-//BOOL CALLBACK DialogSettings(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK DialogFlags(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 void SetModified(bool mod);
 void CheckLoupeMenu(void);
@@ -220,17 +221,19 @@ bool OpenDoSave(HWND hwnd, bool savenew) {
 		if (res == MSGCANCEL)
 		{
 			TitlebarRefresh();
-			SetTitlebarText();
 			return false;
 		}
 		if (res == MSGEXISFILE) {
 			if (MessageBox(hwnd, "Do you want to overwrite?", "There is a file with the same name", MB_YESNO | MB_ICONEXCLAMATION)	// 2014.10.19 D
-				== IDNO) TitlebarRefresh(); SetTitlebarText(); return false;
+				== IDNO) TitlebarRefresh(); return false;
 		}
 	}
 
 	TitlebarRefresh();
-	org_data.SaveMusicData();
+	if (!org_data.SaveMusicData())
+	{
+		return false;
+	}
 	SetModified(false);
 	gFileUnsaved = false;
 	return true;
@@ -292,29 +295,29 @@ void GetApplicationPath(char* path) {
 
 // Oops!
 LONG WINAPI OrgCrashHandler(EXCEPTION_POINTERS* ep) {
-	PlaySound("MENU",GetModuleHandle(NULL),SND_ASYNC | SND_RESOURCE);
+	PlaySound("CAT",GetModuleHandle(NULL),SND_ASYNC | SND_RESOURCE);
 	MessageBox(NULL, "A fatal error has occurred. The program will now exit.", "SOMEBODY'S TOUCHING MY SPAGHET!!", MB_OK | MB_ICONERROR);
 
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
-int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR dropfile,int nCmdShow)
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR dropfile, int nCmdShow)
 {//main function
 	WNDCLASSEX wc;
-//	MessageBox(hWnd,dropfile,"Drap",MB_OK);
+	//	MessageBox(hWnd,dropfile,"Drap",MB_OK);
 #ifndef _DEBUG
 	SetUnhandledExceptionFilter(OrgCrashHandler);
 #endif
 	InitMMTimer();  // 2010.09.21
-	strSize[0]=0;	// 2010.08.14 A
-	for(int jjj=0;jjj<128;jjj++)iKeyPhase[jjj]=-1;
-	iCurrentPhase=0;
-	iPushShift[0]=0;
-	iPushShift[1]=0;
+	strSize[0] = 0;	// 2010.08.14 A
+	for (int jjj = 0; jjj < 128; jjj++)iKeyPhase[jjj] = -1;
+	iCurrentPhase = 0;
+	iPushShift[0] = 0;
+	iPushShift[1] = 0;
 	int i, vvv;
-	for(vvv=0;vvv<256;vvv++){
-		iCast[vvv]=0xFFFF;
-		iKeyPushDown[vvv]=0;
+	for (vvv = 0; vvv < 256; vvv++) {
+		iCast[vvv] = 0xFFFF;
+		iKeyPushDown[vvv] = 0;
 	}
 
 	//load strings for messages
@@ -323,77 +326,78 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR dropfile
 	//initial file name
 	strcpy(mus_file, MessageString[IDS_DEFAULT_ORG_FILENAME]);
 
-	iCast['Z']= 33;
-	iCast['S']= 34;
-	iCast['X']= 35;
-	iCast['C']= 36; //C … C sound
-	iCast['F']= 37;
-	iCast['V']= 38; //     D
-	iCast['G']= 39;
-	iCast['B']= 40; //     E
-	iCast['N']= 41; //     F
-	iCast['J']= 42;
-	iCast['M']= 43; //     G
-	iCast['K']= 44;
-	iCast[0xBC]=45; //,    A
-	iCast['L']= 46;
-	iCast[0xBE]=47; //.    B
-	iCast[0xBF]=48; //／   C
-	iCast[0xBA]=49; //:
-	iCast[0xE2]=50; //￥
-	iCast[0xDD]=51; //]
-	strMIDIFile = (char *)malloc(MAX_PATH);
-	gSelectedTheme = (char *)malloc(MAX_PATH);
+	iCast['Z'] = 33;
+	iCast['S'] = 34;
+	iCast['X'] = 35;
+	iCast['C'] = 36; //C … C sound
+	iCast['F'] = 37;
+	iCast['V'] = 38; //     D
+	iCast['G'] = 39;
+	iCast['B'] = 40; //     E
+	iCast['N'] = 41; //     F
+	iCast['J'] = 42;
+	iCast['M'] = 43; //     G
+	iCast['K'] = 44;
+	iCast[0xBC] = 45; //,    A
+	iCast['L'] = 46;
+	iCast[0xBE] = 47; //.    B
+	iCast[0xBF] = 48; //／   C
+	iCast[0xBA] = 49; //:
+	iCast[0xE2] = 50; //￥
+	iCast[0xDD] = 51; //]
+	strMIDIFile = (char*)malloc(MAX_PATH);
+	gSelectedTheme = (char*)malloc(MAX_PATH);
 	gSelectedWave = (char*)malloc(MAX_PATH);
-    
+
 	LoadString(GetModuleHandle(NULL), IDS_TITLE, lpszName, sizeof(lpszName) / sizeof(lpszName[0]));
 
-	wc.cbSize        = sizeof(WNDCLASSEX);
-	wc.style         = 0;//CS_DBLCLKS| CS_OWNDC;//Application style
-	wc.lpfnWndProc   = (WNDPROC)WndProc;
-	wc.cbClsExtra    = 0;
-	wc.cbWndExtra    = 0;
-	wc.hInstance     = hInst = hInstance;
-	wc.hIcon         = LoadIcon(hInst,"ICON");//big icon
-	wc.hIconSm       = LoadIcon(hInst,"ICON");//small icon
-	wc.hCursor       = LoadCursor(hInst,"CURSOR");//default cursor
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;//CS_DBLCLKS| CS_OWNDC;//Application style
+	wc.lpfnWndProc = (WNDPROC)WndProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInst = hInstance;
+	wc.hIcon = LoadIcon(hInst, "ICON");//big icon
+	wc.hIconSm = LoadIcon(hInst, "ICON");//small icon
+	wc.hCursor = LoadCursor(hInst, "CURSOR");//default cursor
 	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);//window color
-	wc.lpszMenuName  = "ORGANYAMENU";//menu
+	wc.lpszMenuName = "ORGANYAMENU";//menu
 	wc.lpszClassName = lpszName;
 
 	int wnd_width;///Specify the width of the window here.
 	int wnd_height;
-	gWidthWindow = wnd_width = GetSystemMetrics(SM_CXFRAME)*2+//width of the frame
-		GetSystemMetrics(SM_CXHSCROLL)+//scrollbar width
+	gWidthWindow = wnd_width = GetSystemMetrics(SM_CXFRAME) * 2 +//width of the frame
+		GetSystemMetrics(SM_CXHSCROLL) +//scrollbar width
 		WWidth;
-	gHeightWindow = wnd_height = GetSystemMetrics(SM_CYFRAME)*2 +//frame height
-		GetSystemMetrics(SM_CYCAPTION)+//caption height
-		GetSystemMetrics(SM_CYMENU)+//menu bar height
-		GetSystemMetrics(SM_CYVSCROLL)+//scrollbar height
+	gHeightWindow = wnd_height = GetSystemMetrics(SM_CYFRAME) * 2 +//frame height
+		GetSystemMetrics(SM_CYCAPTION) +//caption height
+		GetSystemMetrics(SM_CYMENU) +//menu bar height
+		GetSystemMetrics(SM_CYVSCROLL) +//scrollbar height
 		WHeight;
 
-	if(!RegisterClassEx(&wc)) return FALSE;
-	
-	GetModuleFileName(hInstance, app_path,BUF_SIZE - 1);
-	buf=app_path + lstrlen(app_path) - 4;
-	if(lstrcmpi(buf,".exe")==0){
-		lstrcpy(buf,".ini");
-	}else{
-		lstrcat(app_path,".ini");
+	if (!RegisterClassEx(&wc)) return FALSE;
+
+	GetModuleFileName(hInstance, app_path, BUF_SIZE - 1);
+	buf = app_path + lstrlen(app_path) - 4;
+	if (lstrcmpi(buf, ".exe") == 0) {
+		lstrcpy(buf, ".ini");
+	}
+	else {
+		lstrcat(app_path, ".ini");
 	}
 	//NoteWidth = 16; //Frame designation★
-	NoteWidth =         GetPrivateProfileInt(MAIN_WINDOW,"NoteWidth",16,app_path);
-	NoteWidth = (NoteWidth > 16) ? 16: ( (NoteWidth<4) ? 4: NoteWidth );
+	NoteWidth = GetPrivateProfileInt(MAIN_WINDOW, "NoteWidth", 16, app_path);
+	NoteWidth = (NoteWidth > 16) ? 16 : ((NoteWidth < 4) ? 4 : NoteWidth);
 
-	WinRect.left=       GetPrivateProfileInt(MAIN_WINDOW,"left",0,app_path);
-	WinRect.top=        GetPrivateProfileInt(MAIN_WINDOW,"top",0,app_path);
-	WinRect.right=      GetPrivateProfileInt(MAIN_WINDOW,"right",560,app_path);
-	WinRect.bottom=     GetPrivateProfileInt(MAIN_WINDOW,"bottom",560,app_path);
-	CmnDialogWnd.left=	GetPrivateProfileInt(COMMON_WINDOW,"left",	20,app_path);
-	CmnDialogWnd.top=	GetPrivateProfileInt(COMMON_WINDOW,"top",	20,app_path);
-	CmnDialogWnd.right=	GetPrivateProfileInt(COMMON_WINDOW,"right",	550,app_path);
-	CmnDialogWnd.bottom=GetPrivateProfileInt(COMMON_WINDOW,"bottom",560,app_path);
-	iDlgRepeat =        GetPrivateProfileInt(MIDI_EXPORT,"Repeat",1,app_path);
+	WinRect.left = GetPrivateProfileInt(MAIN_WINDOW, "left", 0, app_path);
+	WinRect.top = GetPrivateProfileInt(MAIN_WINDOW, "top", 0, app_path);
+	WinRect.right = GetPrivateProfileInt(MAIN_WINDOW, "right", 560, app_path);
+	WinRect.bottom = GetPrivateProfileInt(MAIN_WINDOW, "bottom", 560, app_path);
+	CmnDialogWnd.left = GetPrivateProfileInt(COMMON_WINDOW, "left", 20, app_path);
+	CmnDialogWnd.top = GetPrivateProfileInt(COMMON_WINDOW, "top", 20, app_path);
+	CmnDialogWnd.right = GetPrivateProfileInt(COMMON_WINDOW, "right", 550, app_path);
+	CmnDialogWnd.bottom = GetPrivateProfileInt(COMMON_WINDOW, "bottom", 560, app_path);
+	iDlgRepeat = GetPrivateProfileInt(MIDI_EXPORT, "Repeat", 1, app_path);
 
 	char strauthtmp[128];
 	SYSTEMTIME stTime; GetLocalTime(&stTime); //stTime.wYear get a year in // 2014.10.18
@@ -403,32 +407,32 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR dropfile
 	//GetPrivateProfileString(MIDI_EXPORT, "Author", "(C) AUTHOR xxxxx, 2014", strMIDI_AUTHOR, 255, app_path);	// 2045.01.18 D
 	GetPrivateProfileString(MIDI_EXPORT, "Author", strauthtmp, strMIDI_AUTHOR, 255, app_path);	// 2045.01.18 A
 	GetPrivateProfileString(MIDI_EXPORT, "Title", MessageString[IDS_DEFAULT_MIDI_TITLE], strMIDI_TITLE, 255, app_path);
-	for(i=0;i<8;i++)ucMIDIProgramChangeValue[i]=255;
+	for (i = 0; i < 8; i++)ucMIDIProgramChangeValue[i] = 255;
 
 	//SetWindowPos(hWnd,HWND_TOP,WinRect.left,WinRect.top,WinRect.right,WinRect.bottom,SWP_HIDEWINDOW);
 
 	unsigned long ul;
-	ul = WS_CAPTION|WS_MINIMIZEBOX|WS_SYSMENU|WS_THICKFRAME|WS_MAXIMIZEBOX;
+	ul = WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_THICKFRAME | WS_MAXIMIZEBOX;
 
 	//Generate main window
 	hWnd = CreateWindowA(lpszName,
-			"OrgMaker 16",//Displayed "Name"
-			ul,
-			//WS_CAPTION|WS_MINIMIZEBOX|WS_SYSMENU|WS_THICKFRAME|WS_MAXIMIZEBOX,
+		"OrgMaker 16",//Displayed "Name"
+		ul,
+		//WS_CAPTION|WS_MINIMIZEBOX|WS_SYSMENU|WS_THICKFRAME|WS_MAXIMIZEBOX,
 //            WS_CAPTION|WS_VISIBLE|WS_SYSMENU,//window style
 /*
-            32,//Window's X
+			32,//Window's X
 			32,//Window's Y
-            wnd_width,//width
-            wnd_height,//height
+			wnd_width,//width
+			wnd_height,//height
 			*/
-			GetSystemMetrics(SM_CYFULLSCREEN) / 2, GetSystemMetrics(SM_CXFULLSCREEN) / 8, WinRect.right, WinRect.bottom,
-            NULL, NULL, hInst, NULL);
-	if(!hWnd) return FALSE;
+		GetSystemMetrics(SM_CYFULLSCREEN) / 2, GetSystemMetrics(SM_CXFULLSCREEN) / 8, WinRect.right, WinRect.bottom,
+		NULL, NULL, hInst, NULL);
+	if (!hWnd) return FALSE;
 
-//	DialogBox(hInst,"DLGFLASH",NULL,DialogFlash);
+	//	DialogBox(hInst,"DLGFLASH",NULL,DialogFlash);
 
-	Ac = LoadAccelerators(hInstance,MAKEINTRESOURCE(IDR_ACCELERATOR1)); //アクセスキー
+	Ac = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR1)); //アクセスキー
 
 	char sDir[MAX_PATH];
 	GetApplicationPath(sDir);
@@ -463,7 +467,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR dropfile
 			gSelectedWave[0] = 0; // soundbank is gone
 	}
 
-//Image initialization //////////
+	//Image initialization //////////
 	if (!StartGDI(hWnd)) { //GDI ready
 		QuitMMTimer();
 		DestroyWindow(hWnd);
@@ -472,7 +476,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR dropfile
 
 	InitBitmaps();
 	InitCursor();
-//Sound initialization ///////
+	//Sound initialization ///////
 	if (!InitDirectSound(hWnd)) {
 		QuitMMTimer();
 		EndGDI();
@@ -485,55 +489,56 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR dropfile
 
 	InitSoundObject("METRO01", 1);
 	InitSoundObject("METRO02", 2);
-	
-	hDlgPlayer = CreateDialog(hInst,"PLAYER",hWnd,DialogPlayer);
-	hDlgTrack = CreateDialog(hInst,"TRACK",hWnd,DialogTrack);
-	hDlgEZCopy = CreateDialog(hInst,"COPYBD",hWnd,DialogEZCopy);
+
+	hDlgPlayer = CreateDialog(hInst, "PLAYER", hWnd, DialogPlayer);
+	hDlgTrack = CreateDialog(hInst, "TRACK", hWnd, DialogTrack);
+	hDlgEZCopy = CreateDialog(hInst, "COPYBD", hWnd, DialogEZCopy);
 	//hDlgShortCutList = CreateDialog(hInst,"DLGSHORTCUTINFO",hWnd,DialogShortCut);
-	WinRect.left=GetPrivateProfileInt(TRACK_WINDOW,"left",200,app_path);
-	WinRect.top=GetPrivateProfileInt(TRACK_WINDOW,"top",200,app_path);
-	SetWindowPos(hDlgTrack,NULL,WinRect.left,WinRect.top,0,0,SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER);
-	WinRect.left=GetPrivateProfileInt(PLAY_WINDOW,"left",280,app_path);
-	WinRect.top=GetPrivateProfileInt(PLAY_WINDOW,"top",280,app_path);
-	SetWindowPos(hDlgPlayer,NULL,WinRect.left,WinRect.top,0,0,SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER);
-	WinRect.left=GetPrivateProfileInt(COPY_WINDOW,"left",180,app_path);
-	WinRect.top=GetPrivateProfileInt(COPY_WINDOW,"top",380,app_path);
-	SetWindowPos(hDlgEZCopy,NULL,WinRect.left,WinRect.top,0,0,SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER);
-	EZCopyWindowState = GetPrivateProfileInt(COPY_WINDOW,"show",1,app_path);
-	if(EZCopyWindowState==0)ShowWindow(hDlgEZCopy, SW_HIDE);
-	SaveWithInitVolFile = GetPrivateProfileInt(INIT_DATA,"autosave",0,app_path);
+	WinRect.left = GetPrivateProfileInt(TRACK_WINDOW, "left", 200, app_path);
+	WinRect.top = GetPrivateProfileInt(TRACK_WINDOW, "top", 200, app_path);
+	SetWindowPos(hDlgTrack, NULL, WinRect.left, WinRect.top, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER);
+	WinRect.left = GetPrivateProfileInt(PLAY_WINDOW, "left", 280, app_path);
+	WinRect.top = GetPrivateProfileInt(PLAY_WINDOW, "top", 280, app_path);
+	SetWindowPos(hDlgPlayer, NULL, WinRect.left, WinRect.top, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER);
+	WinRect.left = GetPrivateProfileInt(COPY_WINDOW, "left", 180, app_path);
+	WinRect.top = GetPrivateProfileInt(COPY_WINDOW, "top", 380, app_path);
+	SetWindowPos(hDlgEZCopy, NULL, WinRect.left, WinRect.top, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER);
+	EZCopyWindowState = GetPrivateProfileInt(COPY_WINDOW, "show", 1, app_path);
+	if (EZCopyWindowState == 0)ShowWindow(hDlgEZCopy, SW_HIDE);
+	SaveWithInitVolFile = GetPrivateProfileInt(INIT_DATA, "autosave", 0, app_path);
 	ChangeAutoLoadMode(SaveWithInitVolFile);
 	org_data.InitOrgData();
 
-	
+
 	CheckLoupeMenu();
 	LoadRecentFromIniFile();
-	ChangeGridMode(GetPrivateProfileInt(MAIN_WINDOW,"GridMode",0,app_path));
-	ChangeSelAlwaysCurrent(GetPrivateProfileInt(MAIN_WINDOW,"AlwaysCurrent",0,app_path));
-	ChangeDrawDouble(GetPrivateProfileInt(MAIN_WINDOW,"DrawDouble",1,app_path));
-	ChangeDragMode(GetPrivateProfileInt(MAIN_WINDOW,"DragMode",1,app_path));
-	ChangeEnablePlaying(GetPrivateProfileInt(MAIN_WINDOW,"EnablePlaying",1,app_path));
-	ChangeFinish(GetPrivateProfileInt(MAIN_WINDOW,"QuitMessage",1,app_path));
-	ChangeSlideOverlapNoteMode(GetPrivateProfileInt(MAIN_WINDOW,"SlideOverlapNoteMode",1,app_path));
-	ChangePushStratchNOTE(GetPrivateProfileInt(MAIN_WINDOW,"EnablePressNoteStretch",1,app_path));
-	ChangeNoteEnlarge(GetPrivateProfileInt(MAIN_WINDOW,"NoteEnlarge",1,app_path)); //2014.05.28 Make note heads stand out when zoomed out
-	ChangeMetronomeMode(GetPrivateProfileInt(MAIN_WINDOW,"Metronome",0,app_path)); //2023.06.09
+	ChangeGridMode(GetPrivateProfileInt(MAIN_WINDOW, "GridMode", 0, app_path));
+	ChangeSelAlwaysCurrent(GetPrivateProfileInt(MAIN_WINDOW, "AlwaysCurrent", 0, app_path));
+	ChangeDrawDouble(GetPrivateProfileInt(MAIN_WINDOW, "DrawDouble", 1, app_path));
+	ChangeDragMode(GetPrivateProfileInt(MAIN_WINDOW, "DragMode", 1, app_path));
+	ChangeEnablePlaying(GetPrivateProfileInt(MAIN_WINDOW, "EnablePlaying", 1, app_path));
+	ChangeFinish(GetPrivateProfileInt(MAIN_WINDOW, "QuitMessage", 1, app_path));
+	ChangeSlideOverlapNoteMode(GetPrivateProfileInt(MAIN_WINDOW, "SlideOverlapNoteMode", 1, app_path));
+	ChangePushStratchNOTE(GetPrivateProfileInt(MAIN_WINDOW, "EnablePressNoteStretch", 1, app_path));
+	ChangeNoteEnlarge(GetPrivateProfileInt(MAIN_WINDOW, "NoteEnlarge", 1, app_path)); //2014.05.28 Make note heads stand out when zoomed out
+	ChangeMetronomeMode(GetPrivateProfileInt(MAIN_WINDOW, "Metronome", 0, app_path)); //2023.06.09
 	ChangeScrollMode(GetPrivateProfileInt(MAIN_WINDOW, "SmoothScroll", 1, app_path)); //2023.06.09
 
 	volChangeLength = GetPrivateProfileInt(MAIN_WINDOW, "VolChangeLength", 10, app_path);
 	volChangeUseNoteLength = GetPrivateProfileInt(MAIN_WINDOW, "VolChangeUseNoteLength", 1, app_path);
 	volChangeSetNoteLength = GetPrivateProfileInt(MAIN_WINDOW, "VolChangeSetNoteLength", 0, app_path);
-	
+
 	//org_data.PutMusic();//View sheet music
 
-	if(GetPrivateProfileInt(MAIN_WINDOW,"WindowState",0,app_path)==1){
-		ShowWindow(hWnd,SW_MAXIMIZE);
-	}else{
-		ShowWindow(hWnd,nCmdShow);//Main window display
+	if (GetPrivateProfileInt(MAIN_WINDOW, "WindowState", 0, app_path) == 1) {
+		ShowWindow(hWnd, SW_MAXIMIZE);
+	}
+	else {
+		ShowWindow(hWnd, nCmdShow);//Main window display
 	}
 	UpdateWindow(hWnd);//Update main window
 
-	DragAcceptFiles(hWnd,TRUE);//Now allow dragging
+	DragAcceptFiles(hWnd, TRUE);//Now allow dragging
 	//Generate player dialog (modalless)
 
 	//if(GetPrivateProfileInt(MAIN_WINDOW,"WindowState",0,app_path)==1){
@@ -544,24 +549,25 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR dropfile
 	ClearVirtualCB(); //Initialize the virtual clipboard
 	ClearUndo();
 
-			//Show to Player
+	//Show to Player
 	MUSICINFO mi;
-			org_data.GetMusicInfo( &mi );
-			SetDlgItemInt(hDlgTrack,IDE_VIEWWAIT,mi.wait,TRUE );
-			//SetDlgItemInt(hDlgTrack,IDE_VIEWTRACK,0,TRUE );
-			SetDlgItemText(hDlgTrack,IDE_VIEWTRACK,"1");
-	char kfn[MAX_PATH],gfn[MAX_PATH];
-	if(dropfile[0]!=0){
-		strcpy(kfn,dropfile);
+	org_data.GetMusicInfo(&mi);
+	SetDlgItemInt(hDlgTrack, IDE_VIEWWAIT, mi.wait, TRUE);
+	//SetDlgItemInt(hDlgTrack,IDE_VIEWTRACK,0,TRUE );
+	SetDlgItemText(hDlgTrack, IDE_VIEWTRACK, "1");
+	char kfn[MAX_PATH], gfn[MAX_PATH];
+	if (dropfile[0] != 0) {
+		strcpy(kfn, dropfile);
 		int ttt;
-		if(dropfile[0]=='\"'){	//remove quotes
+		if (dropfile[0] == '\"') {	//remove quotes
 			ttt = 1;
-		}else{
+		}
+		else {
 			ttt = 0;
 		}
-		strcpy(gfn,&kfn[ttt]);
-		int ggg = strlen(gfn)-ttt;
-		gfn[ggg]=0;
+		strcpy(gfn, &kfn[ttt]);
+		int ggg = strlen(gfn) - ttt;
+		gfn[ggg] = 0;
 		//MessageBox(hWnd,gfn,"Error(Load)",MB_OK);
 		if (!org_data.FileCheckBeforeLoad(gfn)) { //A 2010.09.25 If the file is in Org format
 			strcpy(mus_file, gfn);
@@ -607,7 +613,7 @@ BOOL SystemTask(void)
 
 		if (!TranslateAccelerator(hWnd, Ac, &msg)) {
 			if (!IsDialogMessage(hDlgPlayer, &msg)) {
-				if (!IsDialogMessage(hDlgTrack, &msg)) { //It'll hit here for multiple reasons, probably.
+				if (!IsDialogMessage(hDlgTrack, &msg)) {
 					if (!IsDialogMessage(hDlgEZCopy, &msg)) {
 						if (!IsDialogMessage(hDlgHelp, &msg)) {
 							TranslateMessage(&msg);
@@ -627,7 +633,6 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 {
 //	char str[64];
 	int i, j;	// 2014.10.18 Added j
-	char res;
 	bool AfterReSize=false;
 	RECT rect = {0,0,WWidth,WHeight};//Area to update (track change)
 	MUSICINFO mi;
@@ -649,13 +654,11 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 				//SendDlgItemMessage(hDlgTrack , IDC_TRACK0 , BM_CLICK , 0, 0);
 			}
 		}
-		/* //Disabling this makes it so it doesn't swap and mute.
 		for(i=0;i<MAXTRACK;i++)
 			if(LOWORD(wParam) == iMuteKey[i])
 			{
 				MuteTrack(i);
 			}
-		*/
 		if(LOWORD(wParam)==IDM_EZCOPYVISIBLE || LOWORD(wParam)==ID_AC_SHOWEZCOPY){
 			if(EZCopyWindowState==0){
 				EZCopyWindowState=1;
@@ -768,9 +771,9 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 			case IDM_DLGWAVEDBS:
 				DialogBox(hInst, "DLGWAVEDBS", hwnd, DialogWaveDB);
 				break;
-			case IDM_DLGSETTINGS:
-				//DialogBox(hInst, "DLGSETTINGS", hwnd, DialogSettings);
-				break;
+			/*case IDM_DLGSETTINGS:
+				DialogBox(hInst, "DLGSETTINGS", hwnd, DialogSettings);
+				break;*/
 			case IDM_DLGHELP://
 			case ID_AC_HELP:
 				//LoadFromResource(IDR_HELPHTML);
@@ -788,19 +791,12 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 			case ID_AC_MENUNEWSAVE:
 				OpenDoSave(hwnd, true);
 				break;
-			case IDM_EXPORT_XM: //Export 2014.05.11
-			case ID_AC_MIDI:
-				
-				res = GetFileNameXM(hwnd,"MIDI Export", strMIDIFile );//"Export in standard MIDI format"
-				if(res == MSGCANCEL)break;
-				if(res == MSGEXISFILE){
-					//if(MessageBox(hwnd,"Do you want to overwrite?","There is a file with the same name",MB_YESNO | MB_ICONEXCLAMATION)	// 2014.10.19 D
-					if(msgbox(hwnd,IDS_NOTIFY_OVERWRITE,IDS_INFO_SAME_FILE,MB_YESNO | MB_ICONEXCLAMATION)	// 2014.10.19 A
-						==IDNO)break;
-				}
-				//org_data.ExportMIDIData(strMIDIFile, iDlgRepeat);
-				//SetTitlebarText();//title name set
-				//ResetTitlebarChange();
+			/*case IDM_MENUSAVEENCODE:
+				DialogBox(hInst, "DLGENCODE", hwnd, DialogEncode);
+				break;*/
+			case IDM_OFLAGS: //Export 2014.05.11
+			//case ID_AC_MIDI:
+				DialogBox(hInst, "DLGFLAGS", hwnd, DialogFlags);
 				break;
 			case IDM_EXPORT_WAV:
 			case ID_AC_WAV:
@@ -1316,7 +1312,7 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 		switch(LOWORD(wParam)){
 		default: SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, ""); break;
 		case ID_MENUITEM40265:      SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING78]); break;
-		case IDM_EXPORT_XM:       SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING79]); break;
+		//case IDM_EXPORT_XM:       SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING79]); break;
 		case IDM_LOAD2:             SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING80]); break;
 		case IDM_SAVEOVER:          SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, mus_file); break; 
 		case IDM_SAVENEW:           SetDlgItemText(hDlgEZCopy, IDC_MESSAGE, MessageString[IDS_STRING81]); break; 
@@ -1432,7 +1428,8 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 			scr_data.KeyScroll(DIRECTION_RIGHT);
 			break;
 		case VK_F5:
-		//case VK_SPACE:
+		case ID_AC_SPACE:
+			MessageBox(hWnd, "TEST", "TEST", MB_OK);
 			if (timer_sw == 0)SendMessage(hDlgPlayer, WM_COMMAND, IDC_PLAY, NULL);
 			else SendMessage(hDlgPlayer, WM_COMMAND, IDC_STOP, NULL);
 			break;

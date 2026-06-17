@@ -2,94 +2,45 @@
 
 #include <string>
 #include <string.h>
-#include <stdio.h>
 #include "Setting.h"
 #include "OrgData.h"
 #include "DefOrg.h"
 #include "rxoFunction.h"
 
-MUSICINFO mus;
+extern unsigned short OrgFlag[ALLOCFLAG][5];
+extern void SetTitlebarText();
+
 
 BOOL OrgData::TrackFlag(void) //Used for ORG-16
 {
-	char i; //Track
+	char i;
+	MUSICINFO mi;
 
-	//Checks Melody
-	for (i = 8; i < MAXMELODY; i++) //i = Last STD Track, i < maxmium track
+	for (i = 8; i < 16; i++)
 	{
-		mus.tdata[i].note_num = GetNoteNumber(i, NULL);
-		if (mus.tdata[i].note_num == NULL)
+		mi.tdata[i].note_num = GetNoteNumber(i, NULL);
+		mi.tdata[i+16].note_num = GetNoteNumber(i+16, NULL);
+		if (mi.tdata[i].note_num != NULL || mi.tdata[i+16].note_num != NULL)
 		{
-			continue;
-		}
-		else
-		{
-			return true;
+			return TRUE;
 		}
 	}
-	for (i = 24; i < MAXTRACK; i++)
+
+	for (i = 0; i < ALLOCFLAG; i++)
 	{
-		mus.tdata[i].note_num = GetNoteNumber(i, NULL);
-		if (mus.tdata[i].note_num == NULL)
+		if (OrgFlag[i][0] != NULL)
 		{
-			continue;
-		}
-		else
-		{
-			return true;
+			return TRUE;
 		}
 	}
-	return false;
+	return FALSE;
 }
 
 int binTrackCode(char* str)
 {
-
 	int i=0;
-	switch ((char) *str) //Credits to Mr. Kryzstof Kudlak; I would've never figured out it should have been (char) *str instead of anything else.
-	{
-	case 'Q':
-	case 'q':
-	case 'W':
-	case 'w':
-	case 'E':
-	case 'e':
-	case 'R':
-	case 'r':
-	case 'T':
-	case 't':
-	case 'Y':
-	case 'y':
-	case 'U':
-	case 'u':
-	case 'I':
-	case 'i':
-	case 'A':
-	case 'a':
-	case 'S':
-	case 's':
-	case 'D':
-	case 'd':
-	case 'F':
-	case 'f':
-	case 'G':
-	case 'g':
-	case 'H':
-	case 'h':
-	case 'J':
-	case 'j':
-	case 'K':
-	case 'k':
-		i = ReverseTrackCode((char) *str); //Should work now...
-		break;
-	}
-
-
-	if (!i)
-	{
-		i = ReverseTrackCode(atoi(str));
-	}
-	
+	i = ReverseTrackCode((char) *str); //Should work now...
+	if (!i)i = ReverseTrackCode(atoi(str));
 	return i;
 }
 
@@ -100,16 +51,10 @@ void TitlebarRefresh(void)
 	{
 		strcpy(mus_file, Ext.replace(Ext.find_last_of("o"), Ext.find_last_of("g"), "org16").c_str());
 	}
-	else if (!org_data.TrackFlag() && strstr(mus_file, "org16") != NULL)
+	else if (!org_data.TrackFlag())
 	{
 		strcpy(mus_file, Ext.replace(Ext.find_last_of("o"), Ext.find_last_of("6"), "org\0\0").c_str());
 	}
-}
-
-void NSO(void) //NonStandardOrganya //Don't play false ORGS!
-{
-	PlaySound("MENU", GetModuleHandle(NULL), SND_ASYNC | SND_RESOURCE);
-	MessageBox(NULL, "A fatal error has occurred. The program will now exit.", "SOMEBODY'S TOUCHING MY SPAGHET!!", MB_OK | MB_ICONERROR);
-	abort();
+	SetTitlebarText();
 }
 

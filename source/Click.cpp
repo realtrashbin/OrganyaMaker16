@@ -16,6 +16,7 @@ extern void ResetLastUndo(); //取りけし
 extern NOTECOPY nc_Select; //選択範囲
 extern int tra, ful ,haba; 
 extern void SetEZCWindowMessage(char *Mess);
+extern bool  FlagR;
 
 long Last_mouse_x = -99999;	//同位置の複数クリックはアンドゥとして記録しない。
 long Last_mouse_y = -99999;
@@ -47,6 +48,8 @@ int shift_down = -1;
 long AdjustX = 0; //   縮小表示時、音符の頭を目立たせる(&O)ための補正
 
 extern int iKeyPushDown[];
+
+BOOL CALLBACK DialogFlags(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 void ClearDrag()
 {
@@ -287,6 +290,7 @@ void MouseDrag(WPARAM wParam, LPARAM lParam)
 						//org_data.PutMusic();//楽譜の再描画
 						xxxredraw++; //RedrawWindow(hWnd,&rectVOL,NULL,RDW_INVALIDATE|RDW_ERASENOW);
 					}
+					TitlebarRefresh();
 					//if(xxxredraw){org_data.PutMusic(); RedrawWindow(hWnd,&rectVOL,NULL,RDW_INVALIDATE|RDW_ERASENOW);} //再描画系はまとめる。	// 2014.05.31 D
 					//if(xxxredraw){org_data.PutMusic(); RedrawWindow(hWnd,&rect2,NULL,RDW_INVALIDATE|RDW_ERASENOW);} //再描画系はまとめる。	// 2014.05.31 A
 				}
@@ -349,7 +353,6 @@ void ClickProcL(WPARAM wParam, LPARAM lParam)
 	long scr_h,scr_v;
 	long Note_x;
 	unsigned char line,dot;
-	MUSICINFO info;
 	if(timer_sw)return;
 
 	scr_data.GetScrollPosition(&scr_h,&scr_v);
@@ -371,22 +374,22 @@ void ClickProcL(WPARAM wParam, LPARAM lParam)
 		mouse_y = WHeight+288-WHNM+144 + 8;
 	}
 
-	if(mouse_x < 64){
-		if(mouse_x >= 0 && mouse_y >= 0 && mouse_y < WHeight+288-WHNM){//鍵盤
+	if(mouse_x < 64){ //Length of a piano key
+		if(mouse_x >= 0 && mouse_y >= 15 && mouse_y < WHeight+288-WHNM){//Touching Piano Keys
 			keyDrag = unsigned char(95 - (mouse_y / 12 + scr_v));
 			org_data.TouchKeyboard(keyDrag);//96*12は楽譜の縦サイズ
 		}
-		if(mouse_x >= 0 && mouse_y >= WHeight+288-WHNM+144 && mouse_y < WHeight+288-WHNM+144+16){//Selectの部位 2014.05.01
+		if(mouse_x >= 0 && mouse_y >= WHeight+288-WHNM+144 && mouse_y < WHeight+288-WHNM+144+16){//Touching Select
 			ChangeSelAlwaysCurrent();
 			rect.left = 0; rect.right=64; rect.top = WHeight+288-WHNM+144; rect.bottom = WHeight+288-WHNM+144+16;
 			return;			
 		}
-		if(mouse_x >= 0 && mouse_y >= WHeight+288-WHNM && mouse_y < WHeight+288-WHNM+72){//PAN の部位 2014.05.01
+		if(mouse_x >= 0 && mouse_y >= WHeight+288-WHNM && mouse_y < WHeight+288-WHNM+72){//Touching Pan
 			iActivatePAN = -iActivatePAN + 1;
 			rect.left = 0; rect.right=64; rect.top = WHeight+288-WHNM; rect.bottom = WHeight+288-WHNM+72;
 			return;			
 		}
-		if(mouse_x >= 0 && mouse_y >= WHeight+288-WHNM+72 && mouse_y < WHeight+288-WHNM+144){//VOL の部位 2014.05.01
+		if(mouse_x >= 0 && mouse_y >= WHeight+288-WHNM+72 && mouse_y < WHeight+288-WHNM+144){//Touching Volume
 			iActivateVOL = -iActivateVOL + 1;
 			rect.left = 0; rect.right=64; rect.top = WHeight+288-WHNM+72; rect.bottom = WHeight+288-WHNM+144 ;
 			return;			
@@ -394,8 +397,25 @@ void ClickProcL(WPARAM wParam, LPARAM lParam)
 
 		return;
 	}
-	
-	if(mouse_y >= 0 && mouse_y < WHeight+288-WHNM){//音符配置
+
+	if (mouse_y >= 0 && mouse_y < 15) //FLAG
+	{
+		mouse_x = (mouse_x - KEYWIDTH) / NoteWidth + scr_h;
+		mouse_y = (WHeight + (351 + 5) - WHNM - mouse_y) / 5;
+		
+		DialogBox(hInst, "DLGFLAGS", hWnd, DialogFlags);
+		if (FlagR == true && org_data.GetFlagUsed(true) == true)
+		{
+			if ((mouse_x != Last_mouse_x) || (mouse_y != Last_mouse_y))SetUndo();
+			org_data.SetFlag(mouse_x, (unsigned char)mouse_y);
+		}
+		else if (org_data.GetFlagUsed(true) == false)
+		{
+			MessageBox(hWnd, "Try removing some flags!", "Flag(Error)", MB_OK);
+		}
+		ClearDrag();
+	}
+	else if(mouse_y >= 15 && mouse_y < WHeight+288-WHNM){//Note grid
 		//取得した座標を楽譜座標に変換
 		mouse_x = (mouse_x - KEYWIDTH)/NoteWidth + scr_h;
 		mouse_y = 95 - (mouse_y/12 + scr_v);//96*12は楽譜の縦サイズ(Pixel)
@@ -407,19 +427,22 @@ void ClickProcL(WPARAM wParam, LPARAM lParam)
 			AdjustX = org_data.SearchNoteC(mouse_x, (unsigned char)mouse_y, 16 / NoteWidth, 16 % NoteWidth); //2014.05.28
 			if(AdjustX > 0) mouse_x -= AdjustX;
 		}else AdjustX = 0;
-		if(org_data.SetNote(mouse_x,(unsigned char)mouse_y,iDragMode)==FALSE)ResetLastUndo(); //長くしすぎて失敗したときは戻す
+		if (org_data.SetNote(mouse_x, (unsigned char)mouse_y, iDragMode) == FALSE) ResetLastUndo(); //長くしすぎて失敗したときは戻す
+		TitlebarRefresh();
 		ClearDrag();
 	}else if(mouse_y >= WHeight+292-WHNM && mouse_y < WHeight+(351+7)-WHNM){//パン配置
 		mouse_x = (mouse_x - KEYWIDTH)/NoteWidth + scr_h;
 		mouse_y = (WHeight+(351+5)-WHNM - mouse_y)/5;//96*12は楽譜の縦サイズ(Pixel)
 		if((mouse_x != Last_mouse_x) ||(mouse_y != Last_mouse_y))SetUndo();
 		org_data.SetPan(mouse_x,(unsigned char)mouse_y);
+		TitlebarRefresh();
 		ClearDrag();
 	}else if(mouse_y >= WHeight+365-WHNM && mouse_y < WHeight+428-WHNM){//ボリューム配置
 		mouse_x = (mouse_x - KEYWIDTH)/NoteWidth + scr_h;
 		mouse_y = (WHeight+428-WHNM - mouse_y)*4;//96*12は楽譜の縦サイズ(Pixel)
 		if((mouse_x != Last_mouse_x) ||(mouse_y != Last_mouse_y))SetUndo();
 		org_data.SetVolume(mouse_x,(unsigned char)mouse_y);
+		TitlebarRefresh();
 		Last_VOL_Drag_mouse_x = mouse_x; //2014.05.02 A
 		Last_VOL_Drag_mouse_y = mouse_y;
 		ClearDrag();
@@ -494,8 +517,15 @@ void ClickProcR(WPARAM wParam, LPARAM lParam)
 
 	if(mouse_x < 64)return;
 	//音符カット
-//	if(mouse_y >= 0 && mouse_y < 288+WDWHEIGHTPLUS){
-	if(mouse_y >= 0 && mouse_y < WHeight+288-WHNM){
+	if (mouse_y >= 0 && mouse_y <= 15)
+	{
+		mouse_x = (mouse_x - KEYWIDTH) / NoteWidth + scr_h;
+		mouse_y = (WHeight + 351 + 5 - WHNM - mouse_y) / 5;//96*12は楽譜の縦サイズ(Pixel)
+		if (org_data.CutFlag(mouse_x, (unsigned char)mouse_y) == FALSE)ResetLastUndo();
+		org_data.GetFlagUsed(false);
+		ClearDrag();
+	}
+	else if(mouse_y >= 15 && mouse_y < WHeight+288-WHNM){
 		//取得した座標を楽譜座標に変換
 		mouse_x = (mouse_x - KEYWIDTH)/NoteWidth + scr_h;
 		mouse_y = 95  - (mouse_y/12 + scr_v);//96*12は楽譜の縦サイズ(Pixel)
@@ -503,7 +533,6 @@ void ClickProcR(WPARAM wParam, LPARAM lParam)
 			AdjustX = org_data.SearchNoteC(mouse_x, (unsigned char)mouse_y, 16 / NoteWidth, 16 % NoteWidth); //2014.05.28
 			if(AdjustX > 0) mouse_x -= AdjustX;
 		}
-
 		//音符を配置
 		if(org_data.CutNote(mouse_x,(unsigned char)mouse_y)==FALSE){
 			//削除するべき音符は存在しなかった。
@@ -515,45 +544,25 @@ void ClickProcR(WPARAM wParam, LPARAM lParam)
 				ChangeTrack(hWnd, NextTrack);
 			}
 		}
-		//org_data.PutMusic();//楽譜の再描画
-		//RedrawWindow(hWnd,&rect,NULL,RDW_INVALIDATE|RDW_ERASENOW);
-//	}else if(mouse_y >= 292+WDWHEIGHTPLUS && mouse_y < 351+7+WDWHEIGHTPLUS){//パン配置
+		TitlebarRefresh();
 	}else if(mouse_y >= WHeight+292-WHNM && mouse_y < WHeight+351+7-WHNM){//パン配置
 		mouse_x = (mouse_x - KEYWIDTH)/NoteWidth + scr_h;
-//		mouse_y = (351+5+WDWHEIGHTPLUS - mouse_y)/5;//96*12は楽譜の縦サイズ(Pixel)
 		mouse_y = (WHeight+351+5-WHNM - mouse_y)/5;//96*12は楽譜の縦サイズ(Pixel)
 		if(org_data.CutPan(mouse_x,(unsigned char)mouse_y)==FALSE)ResetLastUndo();
-		//org_data.PutMusic();//楽譜の再描画
-		//RedrawWindow(hWnd,&rect,NULL,RDW_INVALIDATE|RDW_ERASENOW);
 		ClearDrag();
-//	}else if(mouse_y >= 365+WDWHEIGHTPLUS && mouse_y < 428+WDWHEIGHTPLUS){//ボリューム配置
+		TitlebarRefresh();
 	}else if(mouse_y >= WHeight+365-WHNM && mouse_y < WHeight+428-WHNM){//ボリューム配置
 		mouse_x = (mouse_x - KEYWIDTH)/NoteWidth + scr_h;
-//		mouse_y = (428+WDWHEIGHTPLUS - mouse_y)*4;//96*12は楽譜の縦サイズ(Pixel)
 		mouse_y = (WHeight+428-WHNM - mouse_y)*4;//96*12は楽譜の縦サイズ(Pixel)
-		//if(org_data.CutVolume(mouse_x,(unsigned char)mouse_y)==FALSE)ResetLastUndo(); //2014.05.03 D //このままドラッグされるとアンドゥできない
-		//org_data.PutMusic();//楽譜の再描画
 		ClearDrag();
-		//RedrawWindow(hWnd,&rect,NULL,RDW_INVALIDATE|RDW_ERASENOW);
 		Last_VOL_Drag_mouse_x = mouse_x; //2014.05.02 A //これはVOLでしか使わない。
 		Last_VOL_Drag_mouse_y = mouse_y;
 	}else if(mouse_y >=WHeight-13 && mouse_y<=WHeight-2){ //選択範囲
-		//DragStartx = mouse_x; //ドラッグ開始点
 		tra=-256;
-		//org_data.PutMusic();//楽譜の再描画
-		//RedrawWindow(hWnd,&rect,NULL,RDW_INVALIDATE|RDW_ERASENOW);
 		SetEZCWindowMessage("");
 		ClearDrag();
 		ShowStatusMessage();
 	}
-
-	//以下はテスト用
-//	char str[80];
-//	HDC hdc;
-//	hdc = GetDC(hWnd);
-//	sprintf(str,"ypos:%4d",mouse_y);
-//	TextOut(hdc,200,100,str,strlen(str));
-//	ReleaseDC(hWnd,hdc);
 }
 
 void ClickProcM(WPARAM wParam, LPARAM lParam)

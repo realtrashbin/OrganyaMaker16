@@ -156,6 +156,7 @@
     <ClCompile Include="OrgEdit.cpp" />
     <ClCompile Include="OrgFile.cpp" />
     <ClCompile Include="OrgFileMIDI.cpp" />
+    <ClCompile Include="OrgFlag.cpp" />
     <ClCompile Include="OrgPlay.cpp" />
     <ClCompile Include="rxoFunction.cpp" />
     <ClCompile Include="Scroll.cpp" />

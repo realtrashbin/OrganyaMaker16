@@ -4,6 +4,7 @@
 #include "OrgData.h"
 #include <stdio.h>
 #include "resource.h"
+#include "TrackFlag.h"
 //スクロールバーの移動値
 #define MAXVERTRANGE	(72-12)//8オクターブ
 
@@ -110,13 +111,15 @@ void ScrollData::HorzScrollProc(WPARAM wParam){
 	org_data.GetMusicInfo(&mi);
 
 	switch(LOWORD(wParam)){
-	case SB_LINERIGHT://右へ
+	case SB_LINERIGHT://step
 		hpos++;
 		if(hpos > MAXHORZRANGE)hpos = MAXHORZRANGE;
+		FlagsMoveActivate(hpos);
 		break;
-	case SB_LINELEFT://左へ
+	case SB_LINELEFT://step
 		hpos--;
 		if(hpos < 0)hpos = 0;
+		FlagsMoveActivate(hpos);
 		break;
 	case SB_THUMBPOSITION:
 		hpos = HIWORD(wParam);//現在位置を取得
@@ -124,11 +127,12 @@ void ScrollData::HorzScrollProc(WPARAM wParam){
 	case SB_THUMBTRACK:
 		hpos = HIWORD(wParam);//現在位置を取得
 		break;
-	case SB_PAGERIGHT://右へ
+	case SB_PAGERIGHT://beat
 		hpos = (hpos / (mi.dot * mi.line) + 1) * (mi.dot * mi.line);
 		if(hpos > MAXHORZRANGE)hpos = MAXHORZRANGE;
+		FlagsMoveActivate(hpos);
 		break;
-	case SB_PAGELEFT://左へ
+	case SB_PAGELEFT://beat
 	{
 		int mk = (mi.dot * mi.line);
 		int cap = (hpos / mk) * mk;
@@ -136,6 +140,7 @@ void ScrollData::HorzScrollProc(WPARAM wParam){
 		else hpos = cap - mk;
 
 		if (hpos < 0)hpos = 0;
+		FlagsMoveActivate(hpos);
 		break;
 	}
 

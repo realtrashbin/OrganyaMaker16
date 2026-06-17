@@ -63,9 +63,6 @@
     <ClCompile Include="OrgFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OrgFileMIDI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="OrgPlay.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -85,6 +82,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TrackFlag.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OrgFlag.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OrgFileMIDI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

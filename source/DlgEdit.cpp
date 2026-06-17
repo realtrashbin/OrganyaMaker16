@@ -745,3 +745,54 @@ BOOL CALLBACK DialogSwap(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	return 0;
 }
+/*
+BOOL CALLBACK DialogEncode(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	char str[5];
+	switch (message)
+	{
+	case WM_INITDIALOG:
+	{
+		EnableWindow(hDlgPlayer, FALSE);
+		return TRUE;
+	}
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+			case IDCANCEL:
+			{
+				EndDialog(hdwnd, 0);
+				EnableWindow(hDlgPlayer, TRUE);
+				return TRUE;
+			}
+			case IDOK:
+			{
+				GetDlgItemText(hdwnd, IDC_ENCODESHIFT, str, 3);
+
+				if (str == 0)
+				{
+					MessageBox(hWnd, "Shift can not be 0.", "Error(Encode)", MB_OK);
+					return FALSE;
+				}
+				else if(!org_data.OrganyaEncoder((char) str))
+				{
+					MessageBox(hWnd, "File couldn't be encoded!", "Error Encode", MB_OK);
+					return FALSE;
+				}
+				else
+				{
+					MessageBox(hdwnd, "File successfully encoded.", "Encode", MB_OK);
+					EndDialog(hdwnd, 0);
+					EnableWindow(hDlgPlayer, TRUE);
+					return TRUE;
+				}
+			}
+		}
+	}
+	return FALSE;
+}
+
+BOOL CALLBACK DialogDecode(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	return FALSE;
+}*/

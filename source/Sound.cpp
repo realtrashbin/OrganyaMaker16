@@ -4,6 +4,7 @@
 #include "DefOrg.h"
 #include "Sound.h"
 #include "OrgData.h"
+#include "TrackFlag.h"
 
 #define MINIAUDIO_IMPLEMENTATION
 #define MA_NO_ENCODING
@@ -18,6 +19,9 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define CLAMP(x, y, z) MIN(MAX((x), (y)), (z))
+
+extern unsigned short OrgFlag[ALLOCFLAG][5];
+bool firsttime = true;
 
 static struct S_Sound
 {
@@ -123,7 +127,6 @@ static S_Sound* S_CreateSound(unsigned int frequency, const unsigned char* sampl
 	S_Sound* sound = (S_Sound*)malloc(sizeof(S_Sound));
 	if (sound == NULL)
 		return NULL;
-
 	sound->samples = (signed char*)malloc(length);
 	if (sound->samples == NULL) {
 		free(sound);
@@ -232,7 +235,7 @@ static void S_MixSounds(float* stream, size_t frames_total) {
 				float sample_b;
 				float sample_c;
 				float sample_d;
-
+				
 				if (sound->looping) {
 					sample_a = (float)sound->samples[mmodi(sp - 1, sound->frames)] / (float)(1 << 7);
 					sample_b = (float)sound->samples[sp] / (float)(1 << 7);
@@ -245,7 +248,7 @@ static void S_MixSounds(float* stream, size_t frames_total) {
 					sample_c = sp + 1 >= sound->frames ? 0.0F : (float)sound->samples[sp + 1] / (float)(1 << 7);
 					sample_d = sp + 2 >= sound->frames ? 0.0F : (float)sound->samples[sp + 2] / (float)(1 << 7);
 				}
-
+				
 				const float c0 = sample_b;
 				const float c1 = sample_c - 1 / 3.0 * sample_a - 1 / 2.0 * sample_b - 1 / 6.0 * sample_d;
 				const float c2 = 1 / 2.0 * (sample_a + sample_c) - sample_b;
@@ -295,22 +298,18 @@ S_Sound *lpDRAMBUFFER[MAXDRAM] = {NULL};
 
 
 extern int s_solo;
-
 static void S_Callback(ma_device* device, void* output_stream, const void* input_stream, ma_uint32 frames_total)
 {
 	(void)device;
 	(void)input_stream;
-
 	if (exporting)
 		return;
-
 	float* stream = (float *)output_stream;
 	size_t frames_done = 0;
 	while (frames_done != frames_total) {
 		float mix_buffer[0x800 * 2];
 		size_t subframes = MIN(0x400, frames_total - frames_done);
 		memset(mix_buffer, 0, subframes * sizeof(float) * 2);
-
 		ma_mutex_lock(&organya_mutex);
 
 		if (organya_timer == 0) {
@@ -392,7 +391,7 @@ void EndDirectSound(void)
 {
     int i;
 
-    for(i = 0; i < 8; i++){
+    for(i = 0; i < 16; i++){
         if(lpSECONDARYBUFFER[i] != NULL){
 			S_DestroySound(lpSECONDARYBUFFER[i]);
 			lpSECONDARYBUFFER[i] = NULL;
@@ -640,7 +639,7 @@ unsigned char key_on[MAXTRACK] = {0};//ƒL[ƒXƒCƒbƒ`
 unsigned char key_twin[MAXTRACK] = {0};//¡Žg‚Á‚Ä‚¢‚éƒL[(˜A‘±Žž‚ÌƒmƒCƒY–hŽ~‚Ìˆ×‚É“ñ‚Â—pˆÓ)
 void ChangeOrganPan(unsigned char key, unsigned char pan,char track)//512‚ªMAX‚Å256‚ªÉ°ÏÙ
 {
-	if(lpORGANBUFFER[track][old_key[track] / 12][key_twin[track]] != NULL && old_key[track] != 255)
+	if (lpORGANBUFFER[track][old_key[track] / 12][key_twin[track]] != NULL && old_key[track] != 255)
 		S_SetSoundPan(lpORGANBUFFER[track][old_key[track] / 12][key_twin[track]], (pan_tbl[pan]-256)*10);
 }
 void ChangeOrganVolume(int no, long volume,char track)//300‚ªMAX‚Å300‚ªÉ°ÏÙ
@@ -651,7 +650,6 @@ void ChangeOrganVolume(int no, long volume,char track)//300‚ªMAX‚Å300‚ª
 // ƒTƒEƒ“ƒh‚ÌÄ¶ 
 void PlayOrganObject(unsigned char key, int mode,char track,DWORD freq, bool pipi)
 {
-	
     if(lpORGANBUFFER[track][key/12][key_twin[track]] != NULL){
 		switch(mode){
 		case 0: // ’âŽ~
@@ -667,7 +665,7 @@ void PlayOrganObject(unsigned char key, int mode,char track,DWORD freq, bool pip
 		case 2: // •à‚©‚¹’âŽ~
 			if(old_key[track] != 255){
 				if (!pipi)
-					S_PlaySound(lpORGANBUFFER[track][old_key[track] / 12][key_twin[track]], false);
+					S_PlaySound(lpORGANBUFFER[track][old_key[track] / 12][key_twin[track]], false); //This is causing that stupid sound when u play...
 				old_key[track] = 255;
 			}
             break;
@@ -898,15 +896,16 @@ void PlayDramObject(unsigned char key, int mode,char track)
     }
 }
 
-void PlayOrganKey(unsigned char key,char track,DWORD freq,int Nagasa)
+void PlayOrganKey(unsigned char key,char track,DWORD freq,int Nagasa,char pipi)
 {
 	if (key > 96) return;
-	if (track < MAXMELODY && lpORGANBUFFER[track][key/12][0] != NULL){
+	if (track < MAXMELODY && lpORGANBUFFER[track][key / 12][0] != NULL) {
 		DWORD wait = timeGetTime();
-		ChangeOrganFrequency(key%12,track,freq);//Žü”g”‚ðÝ’è‚µ‚Ä
+		ChangeOrganFrequency(key % 12, track, freq);//Žü”g”‚ðÝ’è‚µ‚Ä
 		S_SetSoundVolume(lpORGANBUFFER[track][key / 12][0], ((200 * 100 / 0x7F) - 255) * 8);
 		S_SetSoundPan(lpORGANBUFFER[track][key / 12][0], 0);
-		S_PlaySound(lpORGANBUFFER[track][key / 12][0], true);
+		if (pipi == -1) { S_PlaySound(lpORGANBUFFER[track][key / 12][0], true); }
+		else S_PlaySound(lpORGANBUFFER[track][key / 12][0], !pipi); 
 		do{
 		}while(timeGetTime() < wait + (DWORD)Nagasa);
 //		lpORGANBUFFER[track][key/12][0]->Play(0, 0, 0); //C 2010.09.23 ‘¦Žž’âŽ~‚·‚éB

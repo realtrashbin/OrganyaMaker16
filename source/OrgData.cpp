@@ -9,12 +9,17 @@
 #include "Sound.h"
 #include "rxoFunction.h"
 #include "Scroll.h"
+#include "TrackFlag.h"
 
 #define DEFVOLUME	200//255はVOLDUMMY。MAXは254
 #define DEFPAN		6
 extern HWND hDlgTrack;
+long uf, lf;
 extern char *dram_name[];
 extern int iKeyPushDown[];
+extern long OrgFlagX[ALLOCFLAG];
+extern unsigned short OrgFlag[ALLOCFLAG][5];
+extern unsigned short OrgFlagUndo[ALLOCFLAG][3];
 
 //指定の数だけNoteDataの領域を確保(初期化)
 BOOL OrgData::NoteAlloc(unsigned short alloc)
@@ -71,10 +76,6 @@ void OrgData::GetMusicInfo(MUSICINFO *mi, int mode) {
 	}
 }
 
-unsigned short OrgData::GetWait(void) {
-	return info.wait;
-}
-
 bool OrgData::PutBackGround(void)
 {
 	//if(!MakeMusicParts(info.line,info.dot))return false;//パーツを生成
@@ -127,6 +128,7 @@ BOOL OrgData::SetMusicInfo(MUSICINFO *mi,unsigned long flag)
 			info.tdata[i].pipi = mi->tdata[i].pipi;
 	}
 
+
 	return TRUE;
 }
 //未使用音符を検索
@@ -165,10 +167,11 @@ BOOL OrgData::SetNote(long x,unsigned char y, int DragMode)
 	if((note = SearchNote(info.tdata[track].note_p)) == NULL)return FALSE;
 	//初音符ならリストに登録
 	if(info.tdata[track].note_list == NULL){
-		PlayOrganKey(y,track,info.tdata[track].freq,100);//■
+		PlayOrganKey(y, track, info.tdata[track].freq, 100);
 		info.tdata[track].note_list = note;
 		note->from = NULL;
 		note->to = NULL;
+		note->flag = FLAGDUMMY;
 		note->length = 1;
 		note->pan = def_pan[track];
 		note->volume = def_volume[track];
@@ -191,6 +194,7 @@ BOOL OrgData::SetNote(long x,unsigned char y, int DragMode)
 		}
 		else p->from->to = note;//じゃなければ前のやつの次に
 		p->from = note;
+		note->flag = FLAGDUMMY;
 		note->length = 1;
 		note->pan = def_pan[track];
 		note->volume = def_volume[track];
@@ -243,6 +247,7 @@ BOOL OrgData::SetNote(long x,unsigned char y, int DragMode)
 		note->from = p;
 		p->to = note;
 		note->to = NULL;
+		note->flag = FLAGDUMMY;
 		note->length = 1;
 		note->pan = def_pan[track];
 		note->volume = def_volume[track];
@@ -390,19 +395,20 @@ int OrgData::SearchNoteC(long x,unsigned char y, long xWidth, long xMod)
 //以下は音符（パン）の配置、削除
 //■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 //音符を配置(左クリックの処理)
-BOOL OrgData::SetPan(long x,unsigned char y)
+BOOL OrgData::SetPan(long x,unsigned char y) // Mouse X & Y
 {
 	NOTELIST *note;//生成NOTE
 	NOTELIST *p;//リストを指すポインター
 	//未使用NOTEを検索
 	if((note = SearchNote(info.tdata[track].note_p)) == NULL)return FALSE;
 	//初音符ならリストに登録
-	if(info.tdata[track].note_list == NULL){
+	if(info.tdata[track].note_list == NULL){ //Placing pan with no note
 		info.tdata[track].note_list = note;
 		note->from = NULL;
 		note->to = NULL;
 		note->length = 1;
 		note->pan = y;
+		note->flag = FLAGDUMMY;
 		note->volume = VOLDUMMY;
 		note->x = x;
 		note->y = KEYDUMMY;
@@ -414,32 +420,34 @@ BOOL OrgData::SetPan(long x,unsigned char y)
 		p = p->to;
 	}
 	//挿入
-	if(p->x > x){
+	if(p->x > x){ //Setting pan on tail of note(Excluding the part after head note)
 		note->to = p;
 		note->from = p->from;
 		if(p->from == NULL){
-			info.tdata[track].note_list = note;//先頭
-		}
-		else p->from->to = note;//じゃなければ前のやつの次に
+			info.tdata[track].note_list = note;//head
+		}//No Idea below
+		else p->from->to = note;//Otherwise, the next one after the previous one
 		p->from = note;
 		note->length = 1;
 		note->pan = y;
-		note->volume = 255;
+		note->volume = VOLDUMMY;
+		note->flag = FLAGDUMMY;
 		note->x = x;
 		note->y = KEYDUMMY;
 	}
-	//パラメータ変更
-	else if(p->x == x){
+	//Parameter Change
+	else if(p->x == x){ //Changing pan on a note
 		p->pan = y;//Ｙ変更
 	}
-	//最後尾追加
-	else if(p->to == NULL){
+	//Add to End
+	else if(p->to == NULL){ //placing pan on what used to be a note(Applies to after a head note too.)
 		note->from = p;
 		p->to = note;
 		note->to = NULL;
 		note->length = 1;
 		note->pan = y;
 		note->volume = VOLDUMMY;
+		note->flag = FLAGDUMMY;
 		note->x = x;
 		note->y = KEYDUMMY;
 	}
@@ -504,13 +512,14 @@ BOOL OrgData::SetVolume(long x,unsigned char y)
 	//未使用NOTEを検索
 	if((note = SearchNote(info.tdata[track].note_p)) == NULL)return FALSE;
 	//初音符ならリストに登録
-	if(info.tdata[track].note_list == NULL){
+	if (info.tdata[track].note_list == NULL) {
 		info.tdata[track].note_list = note;
 		note->from = NULL;
 		note->to = NULL;
 		note->length = 1;
 		note->pan = PANDUMMY;
 		note->volume = y;
+		note->flag = FLAGDUMMY;
 		note->x = x;
 		note->y = KEYDUMMY;
 		return TRUE;
@@ -531,6 +540,7 @@ BOOL OrgData::SetVolume(long x,unsigned char y)
 		p->from = note;
 		note->length = 1;
 		note->pan = PANDUMMY;
+		note->flag = FLAGDUMMY;
 		note->volume = y;
 		note->x = x;
 		note->y = KEYDUMMY;
@@ -538,7 +548,7 @@ BOOL OrgData::SetVolume(long x,unsigned char y)
 //			note->length = (unsigned char)(note->from->length - (note->x - note->from->x));
 	}
 	//パラメータ変更
-	else if(p->x == x){
+	 else if (p->x == x) {
 		if(p->volume != y){	// 2010.08.14 A
 			p->volume = y;//Ｙ変更
 		}else{
@@ -552,6 +562,7 @@ BOOL OrgData::SetVolume(long x,unsigned char y)
 		note->to = NULL;
 		note->length = 1;
 		note->pan = PANDUMMY;
+		note->flag = FLAGDUMMY;
 		note->volume = y;
 		note->x = x;
 		note->y = KEYDUMMY;
@@ -580,6 +591,7 @@ BOOL OrgData::SetVolume2(long x,unsigned char y,long fade)
 		note->to = NULL;
 		note->length = 1;
 		note->pan = PANDUMMY;
+		note->flag = FLAGDUMMY;
 		note->volume = y;
 		note->x = x;
 		note->y = KEYDUMMY;
@@ -605,6 +617,7 @@ BOOL OrgData::SetVolume2(long x,unsigned char y,long fade)
 		p->from = note;
 		note->length = 1;
 		note->pan = PANDUMMY;
+		note->flag = FLAGDUMMY;
 		switch(fade){
 		case 0: //直線的減衰
 			dv = (double)(p->x - lastx)/(double)lastlength;
@@ -649,6 +662,7 @@ BOOL OrgData::SetVolume2(long x,unsigned char y,long fade)
 		p->to = note;
 		note->to = NULL;
 		note->length = 1;
+		note->flag = FLAGDUMMY;
 		note->pan = PANDUMMY;
 		note->volume = y;
 		note->x = x;
@@ -680,18 +694,107 @@ BOOL OrgData::CutVolume(long x,unsigned char y)
 	}
 	return TRUE;
 }
+
+BOOL OrgData::SetFlag(long x, unsigned char y)
+{
+	NOTELIST* note;//生成NOTE
+	NOTELIST* p;//リストを指すポインター
+	unsigned char i = uf;
+	//未使用NOTEを検索
+	if ((note = SearchNote(info.tdata[track].note_p)) == NULL)return FALSE;
+	//初音符ならリストに登録
+	if (info.tdata[track].note_list == NULL) { //Placing pan with no note
+		info.tdata[track].note_list = note;
+		note->from = NULL;
+		note->to = NULL;
+		note->length = 1;
+		note->pan = PANDUMMY;
+		note->flag = x;
+		note->volume = VOLDUMMY;
+		note->x = x;
+		OrgFlagX[i-1] = x;
+		FlagFinder(x, false);
+		note->y = KEYDUMMY;
+		return TRUE;
+	}
+	//頭から検索
+	p = info.tdata[track].note_list;
+	while (p->x < x && p->to != NULL) {
+		p = p->to;
+	}
+	//挿入
+	if (p->x > x) { //Setting pan on tail of note(Excluding the part after head note)
+		note->to = p;
+		note->from = p->from;
+		if (p->from == NULL) {
+			info.tdata[track].note_list = note;//head
+		}//No Idea below
+		else p->from->to = note;//Otherwise, the next one after the previous one
+		p->from = note;
+		note->length = 1;
+		note->pan = PANDUMMY;
+		note->volume = VOLDUMMY;
+		note->flag = x;
+		note->x = x;
+		OrgFlagX[i-1] = x;
+		FlagFinder(x, false);
+		note->y = KEYDUMMY;
+	}
+	//Parameter Change
+	else if (p->x == x) { //Changing pan on a note
+		p->flag = y;//Ｙ変更
+	}
+	//Add to End
+	else if (p->to == NULL) { //placing pan on what used to be a note(Applies to after a head note too.)
+		note->from = p;
+		p->to = note;
+		note->to = NULL;
+		note->length = 1;
+		note->pan = PANDUMMY;
+		note->volume = VOLDUMMY;
+		note->flag = x;
+		note->x = x;
+		OrgFlagX[i-1] = x;
+		FlagFinder(x, false);
+		note->y = KEYDUMMY;
+	}
+	return TRUE;
+}
+
+BOOL OrgData::CutFlag(long x, unsigned char y)
+{
+	NOTELIST* p;//リストを指すポインター
+	//頭から検索
+	if (info.tdata[track].note_list == NULL) return FALSE;
+			p = info.tdata[track].note_list;
+			while (p != NULL && p->x < x)p = p->to;
+			if (p == NULL)return FALSE;
+			//パラメータ変更
+			if (p->x == x) {
+				p->length = 0;
+				if (p->from == NULL)info.tdata[track].note_list = p->to;
+				else p->from->to = p->to;
+				if (p->to == NULL);
+				else p->to->from = p->from;
+			}
+		FlagFinder(x, true);
+	return TRUE;
+}
+
 //■■■■■■■■■■■■■■■■■■■■■■■■
 void OrgData::InitOrgData(void)
 {
 //	MUSICINFO mi;
 	track = 0;
 	info.alloc_note = ALLOCNOTE;//とりあえず10000個確保
+	uf = 0;
+	lf = ALLOCFLAG;
 	info.dot = 4;
 	info.line = 4;
 	info.wait = 100;
 	info.repeat_x = info.dot * info.line * 0;
-	info.end_x = info.dot * info.line * 100; // updated
-	int i;
+	info.end_x = info.dot * info.line * 100;
+	char i;
 	for(i = 0; i < MAXTRACK; i++){
 		info.tdata[i].freq = 1000;
 		info.tdata[i].wave_no = 0;
@@ -699,26 +802,40 @@ void OrgData::InitOrgData(void)
 		def_pan[i] = DEFPAN;
 		def_volume[i] = DEFVOLUME;
 	}
+	for (i = 0; i < ALLOCFLAG; i++)
+	{
+		OrgFlagX[i] = 0;
+		for (char j = 0; j < 5; j++)
+		{
+			OrgFlag[i][j] = 0;
+		}
+	}
 	SetMusicInfo(&info,SETALL);
 
 	// i is refering to TRACKS
 	for(i=0; i<MAXMELODY; i++){
-		//info.tdata[i].wave_no = rand() % 100; //randomly generates a Wave for the track! ...thanks cplusplus.com
+		//info.tdata[i].wave_no = rand() % (100-0)+1; //randomly generates a Wave for the track! ...thanks cplusplus.com
 		info.tdata[i].wave_no = i + 1;
 		MakeOrganyaWave(i, info.tdata[i].wave_no, info.tdata[i].pipi);
-	}
-	info.tdata[16].wave_no = 0; //Drams
-	info.tdata[17].wave_no = 2;
-	info.tdata[18].wave_no = 5;
-	info.tdata[19].wave_no = 6;
-	info.tdata[20].wave_no = 4;
-	info.tdata[21].wave_no = 8;
+	} //Drams
+	info.tdata[16].wave_no = 0; //Bass01
+	info.tdata[17].wave_no = 2; //Snare01
+	info.tdata[18].wave_no = 5; //HiClose01
+	info.tdata[19].wave_no = 6; //HiOpen01
+	info.tdata[20].wave_no = 4; // Tom01
+	info.tdata[21].wave_no = 8; // Per01
 	for (i = 22; i < MAXTRACK; i++)
 	{
 		info.tdata[i].wave_no = 0;
 	}
 	for(i = MAXMELODY; i < MAXTRACK; i++){
 		InitDramObject(info.tdata[i].wave_no,i-MAXMELODY);
+	}
+	for (i = 0; i < MAXTRACK; i++)
+	{
+		OrgFlagUndo[i][0] = info.tdata[i].wave_no;
+		OrgFlagUndo[i][1] = info.tdata[i].pipi;
+		OrgFlagUndo[i][2] = info.tdata[i].freq;
 	}
 }
 void OrgData::GetNoteUsed(long *use,long*left,char track)
@@ -736,6 +853,24 @@ void OrgData::GetNoteUsed(long *use,long*left,char track)
 	}
 	*use = u;
 	*left = l;
+}
+bool OrgData::GetFlagUsed(bool add)
+{
+	if (add == true && uf < ALLOCFLAG)
+	{
+		lf--;
+		uf++;
+	}
+	else if (lf == 0 || (add == false && lf > 31))
+	{
+		return false;
+	}
+	if (add == false)
+	{
+		lf++;
+		uf--;
+	}
+	return true;
 }
 
 OrgData::~OrgData() //デストラクタ
