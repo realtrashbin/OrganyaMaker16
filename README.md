@@ -25,6 +25,8 @@ Compatable with all ORG files.
 
 Exporting ORG-16 as a WAV file.
 
+Ability to change Waveform, Pizzicato state, or frequency during playback.
+
 (Eventually) A hack to introduce it into Cave Story!
 
 ## Download
