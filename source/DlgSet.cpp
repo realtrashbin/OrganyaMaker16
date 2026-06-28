@@ -690,17 +690,6 @@ BOOL CALLBACK DialogWave(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static char PiPiMode;
 	switch (message) {
 	case WM_INITDIALOG://ダイアログが呼ばれた
-		//strTrack, strNNNTrackに文字列を代入する。
-		for (p = MessageString[IDS_STRING112], i = 0; i < MAXTRACK; i++) {
-			strTrack[i] = (char*)p;
-			for (; *p != 0; p++); //文字列終端までポインタ移動
-			p++; //その次の文字にポインタ移動
-		}
-		for (p = MessageString[IDS_STRING113], i = 0; i < MAXTRACK; i++) {
-			strNNNTrack[i] = (char*)p;
-			for (; *p != 0; p++); //文字列終端までポインタ移動
-			p++; //その次の文字にポインタ移動
-		}
 		org_data.GetMusicInfo(&mi);
 		//FREQ & PIPI
 		for (j = 0; j < MAXMELODY; j++) {
@@ -944,9 +933,8 @@ BOOL CALLBACK DialogWave(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		else if (mouse_y > 73) {
 
 			mx = (mouse_x - 646 + 4 - ((mouse_x > 646 + 36 * 5) ? 4 : 0)) / 36;        my = (mouse_y - 89 + 16) / 48;
-			n = mx + my * 10;
-
-			if (mx <= 9 && mx >= 0 && my >= 0 && my <= 9 && n >= 0 && n < 100 && iLastLBox >= 0 && iLastLBox < MAXMELODY) {
+			n = (mx + my * 10)-19;
+			if (mx <= 29 && mx >= 19 && my >= 0 && my <= 10 && n >= 0 && n < 100 && iLastLBox >= 0 && iLastLBox < MAXMELODY) {
 				SendDlgItemMessage(hdwnd, freqbox[iLastLBox], LB_SETTOPINDEX, maxx(0, n - 9), 0);
 				SendDlgItemMessage(hdwnd, freqbox[iLastLBox], LB_SETCURSEL, n, 0);
 				MakeOrganyaWave(iLastLBox, (unsigned char)n, mi.tdata[iLastLBox].pipi);
@@ -1794,7 +1782,7 @@ BOOL CALLBACK DialogHelp(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 BOOL CALLBACK DialogFlags(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	char str[24];
+	char str[24] = { NULL };
 	char i;
 	MUSICINFO mi;
 
@@ -1873,11 +1861,10 @@ BOOL CALLBACK DialogFlags(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 			return TRUE;
 		}
 		case IDOK: {
-
 			if (OrgFlagDlg == -1) {
 				for (i = 0; i < ALLOCFLAG; i++)
 				{
-					if (OrgFlag[i][0] == NULL)
+					if (OrgFlag[i][0] == NULL) //First Free Flag used
 					{
 						if (!IsDlgButtonChecked(hdwnd, IDC_WAITCHANGE)) //Track Change
 						{
@@ -1895,8 +1882,13 @@ BOOL CALLBACK DialogFlags(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 						{
 							OrgFlag[i][0] = 2;
 							OrgFlag[i][1] = org_data.track;
-							GetDlgItemText(hdwnd, IDC_FWAIT, str, 5);
+							GetDlgItemText(hdwnd, IDC_FWAIT, str, 6);
 							OrgFlag[i][4] = atol(str);
+							if (OrgFlag[i][4] > 0x7530)
+							{
+								MessageBox(hWnd, "Frequency cannot be above 30,000.", "Flag(Warning)", MB_OK);
+								return TRUE;
+							}
 						}
 						break;
 					}
@@ -1921,7 +1913,7 @@ BOOL CALLBACK DialogFlags(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 					OrgFlag[OrgFlagDlg][1] = org_data.track;
 					OrgFlag[OrgFlagDlg][2] = 0;
 					OrgFlag[OrgFlagDlg][3] = 0;
-					GetDlgItemText(hdwnd, IDC_FWAIT, str, 5);
+					GetDlgItemText(hdwnd, IDC_FWAIT, str, 6);
 					OrgFlag[OrgFlagDlg][4] = atol(str);
 					if (OrgFlag[OrgFlagDlg][4] > 0x7530)
 					{

@@ -6,6 +6,7 @@
 #include "Sound.h"
 
 long OrgFlagX[ALLOCFLAG];
+
 unsigned short OrgFlag[ALLOCFLAG][5];//32 Flags, 5 elements
 /*
 * 0. Mode
@@ -14,12 +15,14 @@ unsigned short OrgFlag[ALLOCFLAG][5];//32 Flags, 5 elements
 * 3. Pipi
 * 4. Freq.
 */
+
 unsigned short OrgFlagUndo[ALLOCFLAG][3]; //undoes flags
 /*
 * 0. Wave Num
 * 1. Pipi
 * 2. Freq.
 */
+
 char FlagFinder(long x,bool clearflag)
 {
 	//Used for anything relating to clicking and flags
@@ -34,7 +37,7 @@ char FlagFinder(long x,bool clearflag)
 	}
 	if (clearflag == true)
 	{
-		OrgFlagX[i] = 0;
+		OrgFlagX[i] = -1;
 		for (char j = 0; j < 4; j++)
 		{
 			OrgFlag[i][j] = 0;
@@ -52,22 +55,21 @@ void FlagsMoveActivate(long x)
 	for (i = 0; i < MAXTRACK; i++)
 	{
 		org_data.GetMusicInfo(&mi);
+		mi.tdata[i].wave_no = OrgFlagUndo[i][0];
 		if (i < MAXMELODY) {
-			org_data.GetMusicInfo(&mi);
-			mi.tdata[i].wave_no = OrgFlagUndo[i][0];
 			mi.tdata[i].pipi = OrgFlagUndo[i][1];
 			mi.tdata[i].freq = OrgFlagUndo[i][2];
 			MakeOrganyaWave(i, OrgFlagUndo[i][0], OrgFlagUndo[i][1]); //Melody
 			org_data.SetMusicInfo(&mi, SETWAVE | SETPIPI | SETFREQ);
 		}
-		else mi.tdata[i].wave_no = OrgFlagUndo[i][0]; InitDramObject(OrgFlagUndo[i][0],i-MAXMELODY); org_data.SetMusicInfo(&mi, SETWAVE);
+		else InitDramObject(OrgFlagUndo[i][0],i-MAXMELODY); org_data.SetMusicInfo(&mi, SETWAVE);
 	}
 	
 	for (i = 0; i < ALLOCFLAG; i++)
 	{
 		if ((x >= OrgFlagX[i]) && (x != 0 && OrgFlagX[i] != 0))
 		{
-			FunctionChange(i);
+			FunctionChange(i-1);
 		}
 	}
 }

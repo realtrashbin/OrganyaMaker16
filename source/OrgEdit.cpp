@@ -319,6 +319,7 @@ BOOL OrgData::ChangeVolumeData(PARCHANGE *pc, char mode)
 
 	int vnum = vlen >= num ? num : vlen;
 
+
 	if (mode == 1 && !volChangeUseNoteLength && pc->mode >= MODEDECAY && pc->mode < MODEDECAY + 20) {
 		np = info.tdata[pc->track].note_list;
 		if (np == NULL || num == 0 || vlen == 0)return FALSE;
