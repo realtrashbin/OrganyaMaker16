@@ -6,6 +6,7 @@
 #include "Sound.h"
 
 long OrgFlagX[ALLOCFLAG];
+
 unsigned short OrgFlag[ALLOCFLAG][5];//32 Flags, 5 elements
 /*
 * 0. Mode
@@ -14,12 +15,14 @@ unsigned short OrgFlag[ALLOCFLAG][5];//32 Flags, 5 elements
 * 3. Pipi
 * 4. Freq.
 */
+
 unsigned short OrgFlagUndo[ALLOCFLAG][3]; //undoes flags
 /*
 * 0. Wave Num
 * 1. Pipi
 * 2. Freq.
 */
+
 char FlagFinder(long x,bool clearflag)
 {
 	//Used for anything relating to clicking and flags
@@ -34,6 +37,7 @@ char FlagFinder(long x,bool clearflag)
 	}
 	if (clearflag == true)
 	{
+		OrgFlagX[i] = -1;
 		for (char j = 0; j < 4; j++)
 		{
 			OrgFlag[i][j] = 0;
@@ -51,22 +55,21 @@ void FlagsMoveActivate(long x)
 	for (i = 0; i < MAXTRACK; i++)
 	{
 		org_data.GetMusicInfo(&mi);
+		mi.tdata[i].wave_no = OrgFlagUndo[i][0];
 		if (i < MAXMELODY) {
-			org_data.GetMusicInfo(&mi);
-			mi.tdata[i].wave_no = OrgFlagUndo[i][0];
 			mi.tdata[i].pipi = OrgFlagUndo[i][1];
 			mi.tdata[i].freq = OrgFlagUndo[i][2];
 			MakeOrganyaWave(i, OrgFlagUndo[i][0], OrgFlagUndo[i][1]); //Melody
 			org_data.SetMusicInfo(&mi, SETWAVE | SETPIPI | SETFREQ);
 		}
-		else mi.tdata[i].wave_no = OrgFlagUndo[i][0]; InitDramObject(OrgFlagUndo[i][0],i-MAXMELODY); org_data.SetMusicInfo(&mi, SETWAVE);
+		else InitDramObject(OrgFlagUndo[i][0],i-MAXMELODY); org_data.SetMusicInfo(&mi, SETWAVE);
 	}
 	
 	for (i = 0; i < ALLOCFLAG; i++)
 	{
 		if ((x >= OrgFlagX[i]) && (x != 0 && OrgFlagX[i] != 0))
 		{
-			FunctionChange(i);
+			FunctionChange(i-1);
 		}
 	}
 }
@@ -79,6 +82,7 @@ void FunctionChange(unsigned char flag)
 		case 1:
 		{
 			org_data.GetMusicInfo(&mi);
+			Rxo_StopTrackSound(OrgFlag[flag][1]);
 			if (OrgFlag[flag][1] < MAXMELODY) {
 				mi.tdata[OrgFlag[flag][1]].wave_no = OrgFlag[flag][2];
 				mi.tdata[OrgFlag[flag][1]].pipi = OrgFlag[flag][3];
@@ -87,6 +91,7 @@ void FunctionChange(unsigned char flag)
 			}
 			else
 			{
+				Rxo_StopTrackSound(OrgFlag[flag][1]);
 				mi.tdata[OrgFlag[flag][1]].wave_no = OrgFlag[flag][2];
 				InitDramObject(OrgFlag[flag][2], OrgFlag[flag][1] - MAXMELODY);
 				org_data.SetMusicInfo(&mi, SETWAVE);
@@ -95,6 +100,7 @@ void FunctionChange(unsigned char flag)
 		}
 		case 2:
 		{
+			Rxo_StopTrackSound(OrgFlag[flag][1]);
 			org_data.GetMusicInfo(&mi);
 			mi.tdata[OrgFlag[flag][1]].freq = OrgFlag[flag][4];
 			org_data.SetMusicInfo(&mi, SETFREQ);

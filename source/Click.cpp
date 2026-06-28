@@ -419,7 +419,7 @@ void ClickProcL(WPARAM wParam, LPARAM lParam)
 		if (FlagR == true && org_data.GetFlagUsed(true) == true)
 		{
 			if ((mouse_x != Last_mouse_x) || (mouse_y != Last_mouse_y))SetUndo();
-			if (org_data.SetFlag(mouse_x, (unsigned char)mouse_y) == FALSE) MessageBox(hWnd, "This flag can't be placed there!", "Flag(Error)", MB_OK);
+			if (org_data.SetFlag(mouse_x, (unsigned char)mouse_y) == FALSE) MessageBox(hWnd, "There's already a flag there!", "Flag(Error)", MB_OK);
 		}
 		else if (org_data.GetFlagUsed(true) == false)
 		{

@@ -173,7 +173,7 @@ BOOL OrgData::SetNote(long x,unsigned char y, int DragMode)
 		note->to = NULL;
 		for (char i = 0; i < ALLOCFLAG; i++)
 		{
-			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			if (OrgFlagX[i] == x) note->flag = NULL;
 			else note->flag = FLAGDUMMY;
 		}
 		note->length = 1;
@@ -200,7 +200,7 @@ BOOL OrgData::SetNote(long x,unsigned char y, int DragMode)
 		p->from = note;
 		for (char i = 0; i < ALLOCFLAG; i++)
 		{
-			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			if (OrgFlagX[i] == x) note->flag = NULL;
 			else note->flag = FLAGDUMMY;
 		}
 		note->length = 1;
@@ -257,7 +257,7 @@ BOOL OrgData::SetNote(long x,unsigned char y, int DragMode)
 		note->to = NULL;
 		for (char i = 0; i < ALLOCFLAG; i++)
 		{
-			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			if (OrgFlagX[i] == x) note->flag = NULL;
 			else note->flag = FLAGDUMMY;
 		}
 		note->length = 1;
@@ -423,7 +423,7 @@ BOOL OrgData::SetPan(long x,unsigned char y) // Mouse X & Y
 		note->pan = y;
 		for (char i = 0; i < ALLOCFLAG; i++)
 		{
-			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			if (OrgFlagX[i] == x) note->flag = NULL;
 			else note->flag = FLAGDUMMY;
 		}
 		note->volume = VOLDUMMY;
@@ -450,7 +450,7 @@ BOOL OrgData::SetPan(long x,unsigned char y) // Mouse X & Y
 		note->volume = VOLDUMMY;
 		for (char i = 0; i < ALLOCFLAG; i++)
 		{
-			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			if (OrgFlagX[i] == x) note->flag = NULL;
 			else note->flag = FLAGDUMMY;
 		}
 		note->x = x;
@@ -470,7 +470,7 @@ BOOL OrgData::SetPan(long x,unsigned char y) // Mouse X & Y
 		note->volume = VOLDUMMY;
 		for (char i = 0; i < ALLOCFLAG; i++)
 		{
-			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			if (OrgFlagX[i] == x) note->flag = NULL;
 			else note->flag = FLAGDUMMY;
 		}
 		note->x = x;
@@ -547,7 +547,7 @@ BOOL OrgData::SetVolume(long x,unsigned char y)
 		note->volume = y;
 		for (char i = 0; i < ALLOCFLAG; i++)
 		{
-			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			if (OrgFlagX[i] == x) note->flag = NULL;
 			else note->flag = FLAGDUMMY;
 		}
 		note->x = x;
@@ -572,7 +572,7 @@ BOOL OrgData::SetVolume(long x,unsigned char y)
 		note->pan = PANDUMMY;
 		for (char i = 0; i < ALLOCFLAG; i++)
 		{
-			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			if (OrgFlagX[i] == x) note->flag = NULL;
 			else note->flag = FLAGDUMMY;
 		}
 		note->volume = y;
@@ -598,7 +598,7 @@ BOOL OrgData::SetVolume(long x,unsigned char y)
 		note->pan = PANDUMMY;
 		for (char i = 0; i < ALLOCFLAG; i++)
 		{
-			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			if (OrgFlagX[i] == x) note->flag = NULL;
 			else note->flag = FLAGDUMMY;
 		}
 		note->volume = y;
@@ -631,7 +631,7 @@ BOOL OrgData::SetVolume2(long x,unsigned char y,long fade)
 		note->pan = PANDUMMY;
 		for (char i = 0; i < ALLOCFLAG; i++)
 		{
-			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			if (OrgFlagX[i] == x) note->flag = NULL;
 			else note->flag = FLAGDUMMY;
 		}
 		note->volume = y;
@@ -661,7 +661,7 @@ BOOL OrgData::SetVolume2(long x,unsigned char y,long fade)
 		note->pan = PANDUMMY;
 		for (char i = 0; i < ALLOCFLAG; i++)
 		{
-			if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+			if (OrgFlagX[i] == x) note->flag = NULL;
 			else note->flag = FLAGDUMMY;
 		}
 		switch(fade){
@@ -710,7 +710,7 @@ BOOL OrgData::SetVolume2(long x,unsigned char y,long fade)
 		note->length = 1;
 				for (char i = 0; i < ALLOCFLAG; i++)
 		{
-					if (OrgFlagX[i] == x && x != 0) note->flag = NULL;
+					if (OrgFlagX[i] == x) note->flag = NULL;
 					else note->flag = FLAGDUMMY;
 		}
 		note->pan = PANDUMMY;
@@ -751,12 +751,10 @@ BOOL OrgData::SetFlag(long x, unsigned char y)
 	NOTELIST* note;//生成NOTE
 	NOTELIST* p;//リストを指すポインター
 	unsigned char i = uf;
-	bool oneflag=false;
 	OrgFlagX[i - 1] = x;
 	for (char j = 0; j < ALLOCFLAG; j++)
 	{
-		if (OrgFlagX[j] == x && oneflag == true) return FALSE;
-		if (OrgFlagX[j] == x) oneflag = true;
+		if (OrgFlagX[j] == x && OrgFlag[FlagFinder(x,false)][1] != org_data.track) return FALSE;
 	}
 	//未使用NOTEを検索
 	if ((note = SearchNote(info.tdata[track].note_p)) == NULL)return FALSE;
@@ -859,7 +857,7 @@ void OrgData::InitOrgData(void)
 	}
 	for (i = 0; i < ALLOCFLAG; i++)
 	{
-		OrgFlagX[i] = 0;
+		OrgFlagX[i] = -1;
 		for (char j = 0; j < 5; j++)
 		{
 			OrgFlag[i][j] = 0;
@@ -870,7 +868,7 @@ void OrgData::InitOrgData(void)
 	// i is refering to TRACKS
 	for(i=0; i<MAXMELODY; i++){
 		//info.tdata[i].wave_no = rand() % (100-0)+1; //randomly generates a Wave for the track! ...thanks cplusplus.com
-		info.tdata[i].wave_no = i + 1;
+		info.tdata[i].wave_no = i % MAXMELODY;
 		MakeOrganyaWave(i, info.tdata[i].wave_no, info.tdata[i].pipi);
 	} //Drams
 	info.tdata[16].wave_no = 0; //Bass01

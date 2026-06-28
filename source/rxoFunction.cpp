@@ -463,7 +463,7 @@ void EditNote(int AddNotes , int Track , int Function)
 	}
 	for(j=jmin;j<jmax;j++){
 		pc.track = j;
-		if(Function==0)org_data.ChangeTransData(&pc);
+		if (Function == 0) org_data.ChangeTransData(&pc);
 		else if(Function==1)org_data.ChangeVolumeData(&pc, 0);
 		else if(Function==2)org_data.ChangePanData(&pc);
 		else if(Function==10){

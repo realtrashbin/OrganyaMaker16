@@ -5,9 +5,6 @@
 #include "resource.h"
 #include "Scroll.h"
 #include "TrackFlag.h"
-
-#include <string.h>
-#include <string>
 long oplay_p;
 long play_p;//現在再生位置（キャンバス）
 NOTELIST *np[MAXTRACK],*p;//現在再生準備の音符

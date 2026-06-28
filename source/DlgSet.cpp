@@ -600,10 +600,11 @@ void Sl_Reset(HWND hdwnd)
 
 }
 //Changes position of listboxes in DLGWAVE
-void ChangeListBoxSize(HWND hdwnd, int iMeloDrumMode){
+void ChangeListBoxSize(HWND hdwnd, int iMeloDrumMode,bool track16){
 	int j;
 	if(iMeloDrumMode==1){
-		for (j = 0; j < MAXMELODY; j++) {
+		for (j = 0; j < 8; j++) {
+			if (track16) j + 8;
 			HWND haDlg = GetDlgItem(hdwnd, freqbox[j]);
 			if (j > 7)
 			{
@@ -614,7 +615,8 @@ void ChangeListBoxSize(HWND hdwnd, int iMeloDrumMode){
 				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * j + (j > 3 ? 9 : 0), 54, 77, 484, SWP_NOACTIVATE | SWP_NOZORDER);
 			}
 		}
-		for(j = MAXMELODY; j < MAXTRACK; j++){
+		for(j = MAXMELODY; j < 24; j++){
+			if (track16) j + 8;
 			HWND haDlg = GetDlgItem(hdwnd, freqbox[j]);
 			if (j > 23)
 			{
@@ -626,7 +628,8 @@ void ChangeListBoxSize(HWND hdwnd, int iMeloDrumMode){
 			}
 		}
 	}else if(iMeloDrumMode==2){
-		for(j = 0; j < MAXMELODY; j++){
+		for(j = 0; j < 8; j++){
+			if (track16) j + 8;
 			HWND haDlg = GetDlgItem(hdwnd, freqbox[j]);
 			if (j > 7)
 			{
@@ -637,8 +640,9 @@ void ChangeListBoxSize(HWND hdwnd, int iMeloDrumMode){
 				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * j + (j > 3 ? 9 : 0), 54, 77, 40, SWP_NOACTIVATE | SWP_NOZORDER);
 			}
 		}
-		for(j = MAXMELODY; j < MAXTRACK; j++){
+		for(j = MAXMELODY; j < 24; j++){
 			HWND haDlg = GetDlgItem(hdwnd, freqbox[j]);
+			if (track16) j + 8;
 			if (j > 23)
 			{
 				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * ((j - MAXMELODY)-8) + (((j - MAXMELODY)-8) > 3 ? 9 : 0), 54 + 40 + 8, 77, 484, SWP_NOACTIVATE | SWP_NOZORDER);
@@ -649,8 +653,9 @@ void ChangeListBoxSize(HWND hdwnd, int iMeloDrumMode){
 			}
 		}
 	}else{
-		for(j = 0; j < MAXMELODY; j++){
+		for(j = 0; j < 8; j++){
 			HWND haDlg = GetDlgItem(hdwnd, freqbox[j]);
+			if (track16) j + 8;
 			if (j > 7)
 			{
 				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * (j-8) + ((j-8) > 3 ? 9 : 0), 54, 77, 240, SWP_NOACTIVATE | SWP_NOZORDER);
@@ -660,8 +665,9 @@ void ChangeListBoxSize(HWND hdwnd, int iMeloDrumMode){
 				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * j + (j > 3 ? 9 : 0), 54, 77, 240, SWP_NOACTIVATE | SWP_NOZORDER);
 			}
 		}
-		for (j = MAXMELODY; j < MAXTRACK; j++) {
+		for (j = MAXMELODY; j < 24; j++) {
 			HWND haDlg = GetDlgItem(hdwnd, freqbox[j]);
+			if (track16) j + 8;
 			if (j > 23)
 			{
 				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * ((j - MAXMELODY) - 8) + (((j - MAXMELODY) - 8) > 3 ? 9 : 0), 54 + 240 + 8, 77, 284, SWP_NOACTIVATE | SWP_NOZORDER);
@@ -779,17 +785,6 @@ BOOL CALLBACK DialogWave(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static char PiPiMode;
 	switch (message) {
 	case WM_INITDIALOG://ダイアログが呼ばれた
-		//strTrack, strNNNTrackに文字列を代入する。
-		for (p = MessageString[IDS_STRING112], i = 0; i < MAXTRACK; i++) {
-			strTrack[i] = (char*)p;
-			for (; *p != 0; p++); //文字列終端までポインタ移動
-			p++; //その次の文字にポインタ移動
-		}
-		for (p = MessageString[IDS_STRING113], i = 0; i < MAXTRACK; i++) {
-			strNNNTrack[i] = (char*)p;
-			for (; *p != 0; p++); //文字列終端までポインタ移動
-			p++; //その次の文字にポインタ移動
-		}
 		org_data.GetMusicInfo(&mi);
 		//FREQ & PIPI
 		for (j = 0; j < 8; j++) {
@@ -834,7 +829,7 @@ BOOL CALLBACK DialogWave(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (j == iLastLBox)SetDlgItemText(hdwnd, iLastLBox + IDC_LABEL_TRACK_1, strNNNTrack[iLastLBox]);
 			else SetDlgItemText(hdwnd, j + IDC_LABEL_TRACK_1, strTrack[j]);
 		}
-		ChangeListBoxSize(hdwnd, iMeloDrumMode);
+		ChangeListBoxSize(hdwnd, iMeloDrumMode,false);
 		SetDlgItemTextA(hdwnd, IDC_DRUM, "Change &ListBox Height");
 
 		if (waveBmp != NULL) {
@@ -937,7 +932,7 @@ BOOL CALLBACK DialogWave(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		else if ((HWND)lParam == GetDlgItem(hdwnd, IDC_DRUM)) {
 			iMeloDrumMode = (iMeloDrumMode + 1) % 3;
-			ChangeListBoxSize(hdwnd, iMeloDrumMode);
+			ChangeListBoxSize(hdwnd, iMeloDrumMode,false);
 			return 1;
 		}
 		else if ((HWND)lParam == GetDlgItem(hdwnd, IDC_NEWTRACKS))
@@ -1008,11 +1003,11 @@ BOOL CALLBACK DialogWave(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		mouse_x = LOWORD(lParam);  mouse_y = HIWORD(lParam);
 		if (mouse_y > 35 && mouse_y < 54 && mouse_x < 1252) {
 			if (iMeloDrumMode != 1)iMeloDrumMode = 1; else iMeloDrumMode = 0;
-			ChangeListBoxSize(hdwnd, iMeloDrumMode);
+			ChangeListBoxSize(hdwnd, iMeloDrumMode,false);
 		}
 		else if (mouse_y > 587 && mouse_y < 587 + 19 && mouse_x < 1252) {
 			if (iMeloDrumMode != 2)iMeloDrumMode = 2; else iMeloDrumMode = 0;
-			ChangeListBoxSize(hdwnd, iMeloDrumMode);
+			ChangeListBoxSize(hdwnd, iMeloDrumMode,false);
 		}
 		else if (mouse_y > 73) {
 
@@ -1062,27 +1057,6 @@ BOOL CALLBACK DialogWave2(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 	static char PiPiMode;
 	switch (message) {
 	case WM_INITDIALOG://ダイアログが呼ばれた
-		//strTrack, strNNNTrackに文字列を代入する。
-		for (p = MessageString[IDS_STRING112], i = 8; i < MAXMELODY; i++) {
-			strTrack[i] = (char*)p;
-			for (; *p != 0; p++); //文字列終端までポインタ移動
-			p++; //その次の文字にポインタ移動
-		}
-		for (p = MessageString[IDS_STRING112], i = 24; i < MAXTRACK; i++) {
-			strTrack[i] = (char*)p;
-			for (; *p != 0; p++); //文字列終端までポインタ移動
-			p++; //その次の文字にポインタ移動
-		}
-		for (p = MessageString[IDS_STRING113], i = 8; i < MAXMELODY; i++) {
-			strNNNTrack[i] = (char*)p;
-			for (; *p != 0; p++); //文字列終端までポインタ移動
-			p++; //その次の文字にポインタ移動
-		}
-		for (p = MessageString[IDS_STRING113], i = 24; i < MAXTRACK; i++) {
-			strNNNTrack[i] = (char*)p;
-			for (; *p != 0; p++); //文字列終端までポインタ移動
-			p++; //その次の文字にポインタ移動
-		}
 		org_data.GetMusicInfo(&mi);
 		//FREQ & PIPI
 		for (j = 0; j < 8; j++) {
@@ -1092,7 +1066,7 @@ BOOL CALLBACK DialogWave2(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 		}
 		//メロディリストボックスの初期化
 		
-		for (j = 8; j < 16; j++) {
+		for (j = 8; j < MAXMELODY; j++) {
 			SendDlgItemMessage(hdwnd, freqbox[j], LB_RESETCONTENT, 0, 0);//初期化
 			for (i = 0; i < MAXWAVE; i++) {
 				if (i == mi.tdata[j].wave_no) {
@@ -1123,7 +1097,7 @@ BOOL CALLBACK DialogWave2(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 		Sl_Reset(hdwnd); //スライダー初期化
 		EnableDialogWindow(FALSE);
 		iLastLBox = 0;
-		for (j = 0; j < MAXTRACK; j++) {
+		for (j = 8; j < MAXMELODY; j++) {
 			if (j == iLastLBox)SetDlgItemText(hdwnd, iLastLBox + IDC_LABEL_TRACK_1, strNNNTrack[iLastLBox]);
 			else SetDlgItemText(hdwnd, j + IDC_LABEL_TRACK_1, strTrack[j]);
 		}
@@ -1131,7 +1105,7 @@ BOOL CALLBACK DialogWave2(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 			if (j == iLastLBox)SetDlgItemText(hdwnd, iLastLBox + IDC_LABEL_TRACK_1, strNNNTrack[iLastLBox]);
 			else SetDlgItemText(hdwnd, j + IDC_LABEL_TRACK_1, strTrack[j]);
 		}
-		ChangeListBoxSize(hdwnd, iMeloDrumMode);
+		ChangeListBoxSize(hdwnd, iMeloDrumMode,true);
 		SetDlgItemTextA(hdwnd, IDC_DRUM, "Change &ListBox Height");
 		
 		if (waveBmp != NULL) {
@@ -1209,7 +1183,7 @@ BOOL CALLBACK DialogWave2(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 			iMeloDrumMode = 0;
 			SetDlgItemText(hdwnd, IDC_NOTE, "Note");
 			SendMessage(hdwnd, WM_INITDIALOG, 0, 0);
-			for (j = 0; j < MAXMELODY; j++)
+			for (j = 8; j < MAXMELODY; j++)
 			{
 				MakeOrganyaWave(j, mi.tdata[j].wave_no, mi.tdata[j].pipi);
 			}
@@ -1238,7 +1212,7 @@ BOOL CALLBACK DialogWave2(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 		}
 		else if ((HWND)lParam == GetDlgItem(hdwnd, IDC_DRUM)) {
 			iMeloDrumMode = (iMeloDrumMode + 1) % 3;
-			ChangeListBoxSize(hdwnd, iMeloDrumMode);
+			ChangeListBoxSize(hdwnd, iMeloDrumMode,true);
 			return 1;
 		}
 		else if ((HWND)lParam == GetDlgItem(hdwnd, IDC_NEWTRACKS))
@@ -1309,11 +1283,11 @@ BOOL CALLBACK DialogWave2(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 		mouse_x = LOWORD(lParam);  mouse_y = HIWORD(lParam);
 		if (mouse_y > 35 && mouse_y < 54 && mouse_x < 1252) {
 			if (iMeloDrumMode != 1)iMeloDrumMode = 1; else iMeloDrumMode = 0;
-			ChangeListBoxSize(hdwnd, iMeloDrumMode);
+			ChangeListBoxSize(hdwnd, iMeloDrumMode,true);
 		}
 		else if (mouse_y > 587 && mouse_y < 587 + 19 && mouse_x < 1252) {
 			if (iMeloDrumMode != 2)iMeloDrumMode = 2; else iMeloDrumMode = 0;
-			ChangeListBoxSize(hdwnd, iMeloDrumMode);
+			ChangeListBoxSize(hdwnd, iMeloDrumMode,true);
 		}
 		else if (mouse_y > 73) {
 

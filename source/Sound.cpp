@@ -21,7 +21,6 @@
 #define CLAMP(x, y, z) MIN(MAX((x), (y)), (z))
 
 extern unsigned short OrgFlag[ALLOCFLAG][5];
-bool firsttime = true;
 
 static struct S_Sound
 {
@@ -132,7 +131,6 @@ static S_Sound* S_CreateSound(unsigned int frequency, const unsigned char* sampl
 		free(sound);
 		return NULL;
 	}
-
 	for (size_t i = 0; i < length; ++i)
 		sound->samples[i] = samples[i] - 0x80;
 
@@ -182,7 +180,6 @@ static void S_PlaySound(S_Sound *sound, bool looping) {
 		return;
 
 	ma_mutex_lock(&mutex);
-
 	sound->playing = true; //If it stops here, u didn't initilize a TRACK properly.
 	sound->looping = looping;
 
@@ -634,7 +631,7 @@ void ChangeOrganFrequency(unsigned char key,char track, DWORD a)
 		}
 }
 short pan_tbl[13] = {0,43,86,129,172,215,256,297,340,383,426,469,512}; 
-unsigned char old_key[MAXTRACK] = {255,255,255,255,255,255,255,255};//Ä¶’†‚Ì‰¹
+unsigned char old_key[MAXTRACK] = {255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255};//Ä¶’†‚Ì‰¹
 unsigned char key_on[MAXTRACK] = {0};//ƒL[ƒXƒCƒbƒ`
 unsigned char key_twin[MAXTRACK] = {0};//¡Žg‚Á‚Ä‚¢‚éƒL[(˜A‘±Žž‚ÌƒmƒCƒY–hŽ~‚Ìˆ×‚É“ñ‚Â—pˆÓ)
 void ChangeOrganPan(unsigned char key, unsigned char pan,char track)//512‚ªMAX‚Å256‚ªÉ°ÏÙ
@@ -875,7 +872,6 @@ void ChangeDramVolume(long volume,char track)//
 // ƒTƒEƒ“ƒh‚ÌÄ¶ 
 void PlayDramObject(unsigned char key, int mode,char track)
 {
-	
     if(lpDRAMBUFFER[track] != NULL){
 		switch(mode){
 		case 0: // ’âŽ~
@@ -990,11 +986,6 @@ void Rxo_StopAllSoundNow(void)
 void Rxo_StopTrackSound(char Track)
 {
 	int i, j, k;
-	for (i = 0; i < SE_MAX; i++)
-		if (lpSECONDARYBUFFER[i] != NULL) {
-			S_StopSound(lpSECONDARYBUFFER[i]);
-			S_RewindSound(lpSECONDARYBUFFER[i]);
-		}
 	i = Track;
 	if (i < MAXMELODY)
 	{
