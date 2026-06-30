@@ -94,7 +94,7 @@ typedef struct OrgData{
 		BOOL SetVolume(long x,unsigned char y);//ボリューム音符を配置
 		BOOL SetVolume2(long x,unsigned char y,long fade); //フェードアウト	// 2010.08.17 A
 		BOOL CutVolume(long x,unsigned char y);//ボリューム音符のカット
-		BOOL SetFlag(long x, unsigned char y);
+		char SetFlag(long x, unsigned char y);
 		BOOL CutFlag(long x, unsigned char y);
 		BOOL EnlargeAllNotes(int Power);//[新]音符をPower倍に引き伸ばす
 		BOOL ShortenAllNotes(int Power);//[新]音符を1/Power倍に縮こめる

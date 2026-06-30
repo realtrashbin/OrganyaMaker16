@@ -20,7 +20,7 @@
 
 extern BOOL CALLBACK DialogWave(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
 extern BOOL CALLBACK DialogWave2(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam);
-extern unsigned short OrgFlag[ALLOCFLAG][5];
+extern signed short OrgFlag[ALLOCFLAG][5];
 extern unsigned short OrgFlagUndo[ALLOCFLAG][3];
 extern char OrgFlagDlg;
 
@@ -600,74 +600,70 @@ void Sl_Reset(HWND hdwnd)
 
 }
 //Changes position of listboxes in DLGWAVE
-void ChangeListBoxSize(HWND hdwnd, int iMeloDrumMode,bool track16){
+void ChangeListBoxSize(HWND hdwnd, int iMeloDrumMode) {
 	int j;
-	if(iMeloDrumMode==1){
-		for (j = 0; j < 8; j++) {
-			if (track16) j + 8;
+	if (iMeloDrumMode == 1) {
+		for (j = 0; j < MAXMELODY; j++) {
 			HWND haDlg = GetDlgItem(hdwnd, freqbox[j]);
 			if (j > 7)
 			{
-				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * (j-8) + ((j-8) > 3 ? 9 : 0), 54, 77, 484, SWP_NOACTIVATE | SWP_NOZORDER);
+				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * (j - 8) + ((j - 8) > 3 ? 9 : 0), 54, 77, 484, SWP_NOACTIVATE | SWP_NOZORDER);
 			}
 			else
 			{
 				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * j + (j > 3 ? 9 : 0), 54, 77, 484, SWP_NOACTIVATE | SWP_NOZORDER);
 			}
 		}
-		for(j = MAXMELODY; j < 24; j++){
-			if (track16) j + 8;
+		for (j = MAXMELODY; j < MAXTRACK; j++) {
 			HWND haDlg = GetDlgItem(hdwnd, freqbox[j]);
 			if (j > 23)
 			{
-				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * ((j - MAXMELODY)-8) + (((j - MAXMELODY)-8) > 3 ? 9 : 0), 54 + 484 + 8, 77, 40, SWP_NOACTIVATE | SWP_NOZORDER);
+				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * ((j - MAXMELODY) - 8) + (((j - MAXMELODY) - 8) > 3 ? 9 : 0), 54 + 484 + 8, 77, 40, SWP_NOACTIVATE | SWP_NOZORDER);
 			}
 			else
 			{
 				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * (j - MAXMELODY) + ((j - MAXMELODY) > 3 ? 9 : 0), 54 + 484 + 8, 77, 40, SWP_NOACTIVATE | SWP_NOZORDER);
 			}
 		}
-	}else if(iMeloDrumMode==2){
-		for(j = 0; j < 8; j++){
-			if (track16) j + 8;
+	}
+	else if (iMeloDrumMode == 2) {
+		for (j = 0; j < MAXMELODY; j++) {
 			HWND haDlg = GetDlgItem(hdwnd, freqbox[j]);
 			if (j > 7)
 			{
-				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * (j-8) + ((j-8) > 3 ? 9 : 0), 54, 77, 40, SWP_NOACTIVATE | SWP_NOZORDER);
+				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * (j - 8) + ((j - 8) > 3 ? 9 : 0), 54, 77, 40, SWP_NOACTIVATE | SWP_NOZORDER);
 			}
 			else
 			{
 				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * j + (j > 3 ? 9 : 0), 54, 77, 40, SWP_NOACTIVATE | SWP_NOZORDER);
 			}
 		}
-		for(j = MAXMELODY; j < 24; j++){
+		for (j = MAXMELODY; j < MAXTRACK; j++) {
 			HWND haDlg = GetDlgItem(hdwnd, freqbox[j]);
-			if (track16) j + 8;
 			if (j > 23)
 			{
-				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * ((j - MAXMELODY)-8) + (((j - MAXMELODY)-8) > 3 ? 9 : 0), 54 + 40 + 8, 77, 484, SWP_NOACTIVATE | SWP_NOZORDER);
+				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * ((j - MAXMELODY) - 8) + (((j - MAXMELODY) - 8) > 3 ? 9 : 0), 54 + 40 + 8, 77, 484, SWP_NOACTIVATE | SWP_NOZORDER);
 			}
 			else
 			{
 				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * (j - MAXMELODY) + ((j - MAXMELODY) > 3 ? 9 : 0), 54 + 40 + 8, 77, 484, SWP_NOACTIVATE | SWP_NOZORDER);
 			}
 		}
-	}else{
-		for(j = 0; j < 8; j++){
+	}
+	else {
+		for (j = 0; j < MAXMELODY; j++) {
 			HWND haDlg = GetDlgItem(hdwnd, freqbox[j]);
-			if (track16) j + 8;
 			if (j > 7)
 			{
-				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * (j-8) + ((j-8) > 3 ? 9 : 0), 54, 77, 240, SWP_NOACTIVATE | SWP_NOZORDER);
+				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * (j - 8) + ((j - 8) > 3 ? 9 : 0), 54, 77, 240, SWP_NOACTIVATE | SWP_NOZORDER);
 			}
 			else
 			{
 				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * j + (j > 3 ? 9 : 0), 54, 77, 240, SWP_NOACTIVATE | SWP_NOZORDER);
 			}
 		}
-		for (j = MAXMELODY; j < 24; j++) {
+		for (j = MAXMELODY; j < MAXTRACK; j++) {
 			HWND haDlg = GetDlgItem(hdwnd, freqbox[j]);
-			if (track16) j + 8;
 			if (j > 23)
 			{
 				SetWindowPos(haDlg, HWND_TOP, 7 + 77 * ((j - MAXMELODY) - 8) + (((j - MAXMELODY) - 8) > 3 ? 9 : 0), 54 + 240 + 8, 77, 284, SWP_NOACTIVATE | SWP_NOZORDER);
@@ -680,10 +676,11 @@ void ChangeListBoxSize(HWND hdwnd, int iMeloDrumMode,bool track16){
 	}
 
 }
+
 void ChangePiPiActive(HWND hdwnd, char mode, bool track16)
 {
 	char j;
-	if (track16 == false)
+	if (!track16)
 	{
 		switch (mode)
 		{
@@ -776,7 +773,7 @@ BOOL CALLBACK DialogWave(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	long mouse_x;
 	long mouse_y;
 	long mx, my, n;
-	char str[16];
+	char str[32];
 	TCHAR* p;
 	static MUSICINFO mi;
 	static int iLastLBox = 0;
@@ -829,7 +826,7 @@ BOOL CALLBACK DialogWave(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (j == iLastLBox)SetDlgItemText(hdwnd, iLastLBox + IDC_LABEL_TRACK_1, strNNNTrack[iLastLBox]);
 			else SetDlgItemText(hdwnd, j + IDC_LABEL_TRACK_1, strTrack[j]);
 		}
-		ChangeListBoxSize(hdwnd, iMeloDrumMode,false);
+		ChangeListBoxSize(hdwnd, iMeloDrumMode);
 		SetDlgItemTextA(hdwnd, IDC_DRUM, "Change &ListBox Height");
 
 		if (waveBmp != NULL) {
@@ -917,7 +914,7 @@ BOOL CALLBACK DialogWave(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		else if ((HWND)lParam == GetDlgItem(hdwnd, IDC_EXTRAPIPI)) { //PiPi set button
 			PiPiMode = (PiPiMode + 1) % 4;
-			ChangePiPiActive(hdwnd, PiPiMode, false);
+			ChangePiPiActive(hdwnd, PiPiMode,false);
 			return 1;
 		}
 		else if ((HWND)lParam == GetDlgItem(hdwnd, IDC_RANDOMFREQ)) //Sets random frequency
@@ -932,7 +929,7 @@ BOOL CALLBACK DialogWave(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		else if ((HWND)lParam == GetDlgItem(hdwnd, IDC_DRUM)) {
 			iMeloDrumMode = (iMeloDrumMode + 1) % 3;
-			ChangeListBoxSize(hdwnd, iMeloDrumMode,false);
+			ChangeListBoxSize(hdwnd, iMeloDrumMode);
 			return 1;
 		}
 		else if ((HWND)lParam == GetDlgItem(hdwnd, IDC_NEWTRACKS))
@@ -950,14 +947,12 @@ BOOL CALLBACK DialogWave(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 					SetDlgItemText(hdwnd, iLastLBox + IDC_LABEL_TRACK_1, strNNNTrack[iLastLBox]);
 					Rxo_StopAllSoundNow();
 					i = SendDlgItemMessage(hdwnd, freqbox[j], LB_GETCURSEL, 0, 0);//インデックスを得る
-					if (j < 8) { GetDlgItemTextA(hdwnd, IDD_SETFREQx0 + j, str, MAXTRACK); i = atol(str); mi.tdata[j].freq = (i > 0x7530) ? 0x7530 : i; }
-					else GetDlgItemTextA(hdwnd, IDD_SETFREQx0 + j + 489, str, MAXTRACK); i = atol(str); mi.tdata[j].freq = (i > 0x7530) ? 0x7530 : i;
-					if (j < 8) mi.tdata[j].pipi = (IsDlgButtonChecked(hdwnd, IDC_CHECK_PIPIx0 + j)) ? 1 : 0;
-					else mi.tdata[j].pipi = (IsDlgButtonChecked(hdwnd, IDC_CHECK_PIPIx0 + j + 533)) ? 1 : 0;
+					mi.tdata[j].wave_no = i;
+					GetDlgItemTextA(hdwnd, IDD_SETFREQx0 + j, str, MAXTRACK); i = atol(str); mi.tdata[j].freq = (i > 0x7530) ? 0x7530 : i;
+					mi.tdata[j].pipi = (IsDlgButtonChecked(hdwnd, IDC_CHECK_PIPIx0 + j)) ? 1 : 0;
 					MakeOrganyaWave(j, mi.tdata[j].wave_no, mi.tdata[j].pipi);
 					PlayOrganKey(SamplePlayHeight, j, mi.tdata[j].freq, 240, mi.tdata[j].pipi);
-					//org_data.GetMusicInfo(&mi);
-					mi.tdata[j].wave_no = i;
+					//org_data.GetMusicInfo(&mi
 					//org_data.SetMusicInfo(&mi,SETWAVE);
 				}
 				else if (HIWORD(wParam) == LBN_SETFOCUS) {
@@ -1003,11 +998,11 @@ BOOL CALLBACK DialogWave(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		mouse_x = LOWORD(lParam);  mouse_y = HIWORD(lParam);
 		if (mouse_y > 35 && mouse_y < 54 && mouse_x < 1252) {
 			if (iMeloDrumMode != 1)iMeloDrumMode = 1; else iMeloDrumMode = 0;
-			ChangeListBoxSize(hdwnd, iMeloDrumMode,false);
+			ChangeListBoxSize(hdwnd, iMeloDrumMode);
 		}
 		else if (mouse_y > 587 && mouse_y < 587 + 19 && mouse_x < 1252) {
 			if (iMeloDrumMode != 2)iMeloDrumMode = 2; else iMeloDrumMode = 0;
-			ChangeListBoxSize(hdwnd, iMeloDrumMode,false);
+			ChangeListBoxSize(hdwnd, iMeloDrumMode);
 		}
 		else if (mouse_y > 73) {
 
@@ -1047,7 +1042,7 @@ BOOL CALLBACK DialogWave2(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 	long mouse_x;
 	long mouse_y;
 	long mx, my, n;
-	char str[16];
+	char str[32];
 	TCHAR* p;
 	static MUSICINFO mi;
 	static int iLastLBox = 0;
@@ -1105,7 +1100,7 @@ BOOL CALLBACK DialogWave2(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 			if (j == iLastLBox)SetDlgItemText(hdwnd, iLastLBox + IDC_LABEL_TRACK_1, strNNNTrack[iLastLBox]);
 			else SetDlgItemText(hdwnd, j + IDC_LABEL_TRACK_1, strTrack[j]);
 		}
-		ChangeListBoxSize(hdwnd, iMeloDrumMode,true);
+		ChangeListBoxSize(hdwnd, iMeloDrumMode);
 		SetDlgItemTextA(hdwnd, IDC_DRUM, "Change &ListBox Height");
 		
 		if (waveBmp != NULL) {
@@ -1212,7 +1207,7 @@ BOOL CALLBACK DialogWave2(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 		}
 		else if ((HWND)lParam == GetDlgItem(hdwnd, IDC_DRUM)) {
 			iMeloDrumMode = (iMeloDrumMode + 1) % 3;
-			ChangeListBoxSize(hdwnd, iMeloDrumMode,true);
+			ChangeListBoxSize(hdwnd, iMeloDrumMode);
 			return 1;
 		}
 		else if ((HWND)lParam == GetDlgItem(hdwnd, IDC_NEWTRACKS))
@@ -1222,7 +1217,7 @@ BOOL CALLBACK DialogWave2(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 			DialogBox(hInst, "DLGWAVE", hWnd, DialogWave);
 			return 1;
 		}
-		for (j = 0; j < MAXMELODY; j++) {
+		for (j = 8; j < MAXMELODY; j++) {
 			if (freqbox[j] == LOWORD(wParam)) {
 				if (HIWORD(wParam) == LBN_SELCHANGE) {
 					SetDlgItemText(hdwnd, iLastLBox + IDC_LABEL_TRACK_1, strTrack[iLastLBox]);
@@ -1232,10 +1227,8 @@ BOOL CALLBACK DialogWave2(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 					i = SendDlgItemMessage(hdwnd, freqbox[j], LB_GETCURSEL, 0, 0);//インデックスを得る
 					//org_data.GetMusicInfo(&mi);
 					mi.tdata[j].wave_no = i;
-					if (j < 8) { GetDlgItemTextA(hdwnd, IDD_SETFREQx0 + j, str, MAXTRACK); i = atol(str); mi.tdata[j].freq = (i > 0x7530) ? 0x7530 : i; }
-					else GetDlgItemTextA(hdwnd, IDD_SETFREQx0 + j + 489, str, MAXTRACK); i = atol(str); mi.tdata[j].freq = (i > 0x7530) ? 0x7530 : i;
-					if (j < 8) mi.tdata[j].pipi = (IsDlgButtonChecked(hdwnd, IDC_CHECK_PIPIx0 + j)) ? 1 : 0;
-					else mi.tdata[j].pipi = (IsDlgButtonChecked(hdwnd, IDC_CHECK_PIPIx0 + j + 533)) ? 1 : 0;
+					GetDlgItemTextA(hdwnd, IDD_SETFREQx0 + j + 489, str, MAXTRACK); i = atol(str); mi.tdata[j].freq = (i > 0x7530) ? 0x7530 : i;
+					mi.tdata[j].pipi = (IsDlgButtonChecked(hdwnd, IDC_CHECK_PIPIx0 + j + 533)) ? 1 : 0;
 					MakeOrganyaWave(j, mi.tdata[j].wave_no, mi.tdata[j].pipi);
 					PlayOrganKey(SamplePlayHeight, j, mi.tdata[j].freq, 240, mi.tdata[j].pipi);
 					//org_data.SetMusicInfo(&mi,SETWAVE);
@@ -1283,11 +1276,11 @@ BOOL CALLBACK DialogWave2(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 		mouse_x = LOWORD(lParam);  mouse_y = HIWORD(lParam);
 		if (mouse_y > 35 && mouse_y < 54 && mouse_x < 1252) {
 			if (iMeloDrumMode != 1)iMeloDrumMode = 1; else iMeloDrumMode = 0;
-			ChangeListBoxSize(hdwnd, iMeloDrumMode,true);
+			ChangeListBoxSize(hdwnd, iMeloDrumMode);
 		}
 		else if (mouse_y > 587 && mouse_y < 587 + 19 && mouse_x < 1252) {
 			if (iMeloDrumMode != 2)iMeloDrumMode = 2; else iMeloDrumMode = 0;
-			ChangeListBoxSize(hdwnd, iMeloDrumMode,true);
+			ChangeListBoxSize(hdwnd, iMeloDrumMode);
 		}
 		else if (mouse_y > 73) {
 

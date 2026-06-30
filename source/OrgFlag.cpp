@@ -5,9 +5,9 @@
 #include "DefOrg.h"
 #include "Sound.h"
 
-long OrgFlagX[ALLOCFLAG];
+signed long OrgFlagX[ALLOCFLAG];
 
-unsigned short OrgFlag[ALLOCFLAG][5];//32 Flags, 5 elements
+signed short OrgFlag[ALLOCFLAG][5];//32 Flags, 5 elements
 /*
 * 0. Mode
 * 1. Track Num
@@ -27,6 +27,7 @@ char FlagFinder(long x,bool clearflag)
 {
 	//Used for anything relating to clicking and flags
 	//Ex. Deleting a flag, it has to get the flag ID to clear it obviously.
+	
 	char i;
 	for (i = 0; i < ALLOCFLAG; i++)
 	{
@@ -67,9 +68,9 @@ void FlagsMoveActivate(long x)
 	
 	for (i = 0; i < ALLOCFLAG; i++)
 	{
-		if ((x >= OrgFlagX[i]) && (x != 0 && OrgFlagX[i] != 0))
+		if (x >= OrgFlagX[i] && OrgFlagX[i] != -1)
 		{
-			FunctionChange(i-1);
+			FunctionChange(i);
 		}
 	}
 }

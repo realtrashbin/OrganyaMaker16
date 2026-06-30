@@ -24,8 +24,8 @@ char pass5[7] = "Org-10"; // 16 but in hex!
 //char passxx[7] = "Org-xx"; //8 & Encode
 
 char ver = 0;
-extern unsigned short OrgFlag[ALLOCFLAG][5];
-extern long OrgFlagX[ALLOCFLAG];
+extern signed short OrgFlag[ALLOCFLAG][5];
+extern signed long OrgFlagX[ALLOCFLAG];
 extern unsigned short OrgFlagUndo[ALLOCFLAG][3];
 
 //Important Structures for how ORGMAKER works.
@@ -53,7 +53,7 @@ typedef struct {
 	unsigned char dot; //Step (For time signature)
 	long repeat_x;//Beginning of repeat segment. (In steps)
 	long end_x;//End of repeat segment. (In steps)
-	ORGANYATRACK tdata[MAXTRACK]; //TRACKS
+	ORGANYATRACK tdata[32]; //TRACKS
 }ORGANYADATA; //Structure of an ORG-16 File
 
 
@@ -66,9 +66,8 @@ typedef struct {
 	ORGANYATRACK tdata[16]; //TRACKS
 }ORGDATAEIGHT; //Structure of an ORG File
 
-ORGANYADATA orgdat{}; //16 Track Data
-ORGDATAEIGHT eightdat{}; //8 Track Data
-
+ORGDATAEIGHT eightdat;
+ORGANYADATA orgdat;
 
 //Gets the amount of Notes and can copy them?
 unsigned short OrgData::GetNoteNumber(char track,NOTECOPY *nc)
@@ -284,7 +283,7 @@ BOOL OrgData::SaveMusicData(void)
 
 	for (i = 0; i < ALLOCFLAG; i++)
 	{
-		if (OrgFlag[i][0] != NULL) j = 5; ORG16F = true;  break;
+		if (OrgFlag[i][0] != NULL) { j = 5; ORG16F = true; break; }
 	}
 	/*
 	if (ver == 5)
@@ -428,10 +427,10 @@ BOOL OrgData::SaveMusicData(void)
 				}
 				for (i = 0; i < ALLOCFLAG; i++) {
 					if (OrgFlag[i][0] == NULL) continue;
-					fwrite(&OrgFlagX[i], sizeof(long), 1, fp);
+					fwrite(&OrgFlagX[i], sizeof(signed long), 1, fp);
 					for (j = 0; j < 5; j++)
 					{
-						fwrite(&OrgFlag[i][j], sizeof(unsigned short), 1, fp);
+						fwrite(&OrgFlag[i][j], sizeof(signed short), 1, fp);
 					}
 				}
 			}
@@ -466,7 +465,7 @@ int OrgData::FileCheckBeforeLoad(char *checkfile)
 	if (!memcmp(pass_check, pass, 6))ver++;
 	else if (!memcmp(pass_check, pass2, 6) || !memcmp(pass_check, pass3, 6))ver++;
 	else if (!memcmp(pass_check, pass4, 6))ver++;
-	else if (!memcmp(pass_check, pass5, 7))ver++;
+	else if (!memcmp(pass_check, pass5, 6))ver++;
 	//else if (!memcmp(pass_check, passXX, 6))ver++;
 	//else if (!memcmp(pass_check, passxx, 6))ver++;
 	if (!ver) {
@@ -481,7 +480,6 @@ int OrgData::FileCheckBeforeLoad(char *checkfile)
 
 BOOL OrgData::LoadMusicData(void)
 {
-	ORGANYADATA orgdat{};
 	NOTELIST* np;
 	int i, j;
 	char pass_check[6];
@@ -819,22 +817,19 @@ BOOL OrgData::LoadMusicData(void)
 			}
 			if (ver == 5)
 			{
-				np = info.tdata[j].note_p;//Flag
+				np = info.tdata[j].note_p;
 				for (i = 0; i < orgdat.tdata[j].note_num; i++) {
 					if (i >= info.alloc_note) { fseek(fp, sizeof(unsigned char), SEEK_CUR); continue; }
 					fread(&np->flag, sizeof(unsigned char), 1, fp);
 					np++;
 				}
 				for (i = 0; i < ALLOCFLAG; i++) {
-					fread(&OrgFlagX[i], sizeof(long), 1, fp);
+					fread(&OrgFlagX[i], sizeof(signed long), 1, fp);
 					for (j = 0; j < 5; j++)
 					{
-						fread(&OrgFlag[i][j], sizeof(unsigned short), 1, fp);
-						if (OrgFlag[j][0] != NULL)
-						{
-							org_data.GetFlagUsed(true);
-						}
+						fread(&OrgFlag[i][j], sizeof(signed short), 1, fp);
 					}
+					if (OrgFlag[i][0] != NULL) OrgData::GetFlagUsed(true);
 				}
 			}
 		}
