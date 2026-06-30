@@ -7,7 +7,7 @@
 #include "DefOrg.h"
 #include "rxoFunction.h"
 
-extern unsigned short OrgFlag[ALLOCFLAG][5];
+extern signed short OrgFlag[ALLOCFLAG][5];
 extern void SetTitlebarText();
 
 
@@ -28,7 +28,7 @@ BOOL OrgData::TrackFlag(void) //Used for ORG-16
 
 	for (i = 0; i < ALLOCFLAG; i++)
 	{
-		if (OrgFlag[i][0] != NULL)
+		if (OrgFlag[i][0] != 0)
 		{
 			return TRUE;
 		}
@@ -39,7 +39,43 @@ BOOL OrgData::TrackFlag(void) //Used for ORG-16
 int binTrackCode(char* str)
 {
 	int i=0;
-	i = ReverseTrackCode((char) *str); //Should work now...
+	switch ((char)*str)
+	{
+	case 'Q':
+	case 'W':
+	case 'E':
+	case 'R':
+	case 'T':
+	case 'Y':
+	case 'U':
+	case 'I':
+	case 'A':
+	case 'S':
+	case 'D':
+	case 'F':
+	case 'G':
+	case 'H':
+	case 'J':
+	case 'K':
+	case 'q':
+	case 'w':
+	case 'e':
+	case 'r':
+	case 't':
+	case 'y':
+	case 'u':
+	case 'i':
+	case 'a':
+	case 's':
+	case 'd':
+	case 'f':
+	case 'g':
+	case 'h':
+	case 'j':
+	case 'k':
+		i = ReverseTrackCode((char)*str); //Should work now...
+		break;
+	}
 	if (!i)i = ReverseTrackCode(atoi(str));
 	return i;
 }

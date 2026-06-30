@@ -17,8 +17,8 @@ extern HWND hDlgTrack;
 long uf, lf;
 extern char *dram_name[];
 extern int iKeyPushDown[];
-extern long OrgFlagX[ALLOCFLAG];
-extern unsigned short OrgFlag[ALLOCFLAG][5];
+extern signed long OrgFlagX[ALLOCFLAG];
+extern signed short OrgFlag[ALLOCFLAG][5];
 extern unsigned short OrgFlagUndo[ALLOCFLAG][3];
 
 //指定の数だけNoteDataの領域を確保(初期化)
@@ -160,14 +160,14 @@ void OrgData::StopKeyboard(unsigned char y)
 
 BOOL OrgData::SetNote(long x,unsigned char y, int DragMode)
 {
-	NOTELIST *note;//生成NOTE
-	NOTELIST *p;//リストを指すポインター
-	NOTELIST *cut_p;//それを置く事によってカットすべき音符
+	NOTELIST *note, *p, *cut_p;//生成NOTE
+	//リストを指すポインター
+	//それを置く事によってカットすべき音符
 	//未使用NOTEを検索
 	if((note = SearchNote(info.tdata[track].note_p)) == NULL)return FALSE;
 	//初音符ならリストに登録
 	if(info.tdata[track].note_list == NULL){
-		PlayOrganKey(y, track, info.tdata[track].freq, 100);
+		PlayOrganKey(y, track, info.tdata[track].freq, 100,info.tdata[track].pipi);
 		info.tdata[track].note_list = note;
 		note->from = NULL;
 		note->to = NULL;
@@ -190,7 +190,7 @@ BOOL OrgData::SetNote(long x,unsigned char y, int DragMode)
 	}
 	//挿入
 	if(p->x > x){
-		PlayOrganKey(y,track,info.tdata[track].freq,100);//■
+		PlayOrganKey(y, track, info.tdata[track].freq, 100, info.tdata[track].pipi);//■
 		note->to = p;
 		note->from = p->from;
 		if(p->from == NULL){
@@ -239,7 +239,7 @@ BOOL OrgData::SetNote(long x,unsigned char y, int DragMode)
 				cut_p->from = NULL;
 			}
 		}else{
-			PlayOrganKey(y,track,info.tdata[track].freq,100);//■
+			PlayOrganKey(y, track, info.tdata[track].freq, 100, info.tdata[track].pipi);//■
 			p->y = y;//Ｙ変更
 			//カットすべき音符を検索
 			cut_p = p->from;
@@ -251,7 +251,7 @@ BOOL OrgData::SetNote(long x,unsigned char y, int DragMode)
 	}
 	//最後尾追加
 	else if(p->to == NULL){
-		PlayOrganKey(y,track,info.tdata[track].freq,100);//■
+		PlayOrganKey(y, track, info.tdata[track].freq, 100, info.tdata[track].pipi);//■
 		note->from = p;
 		p->to = note;
 		note->to = NULL;
@@ -280,7 +280,6 @@ BOOL OrgData::CutNote(long x,unsigned char y)
 {
 	NOTELIST *p;//リストを指すポインター
 	//頭から検索
-	FlagFinder(x, true);
 	if(info.tdata[track].note_list == NULL)return FALSE;
 	p = info.tdata[track].note_list;
 	while(p != NULL && p->x < x)p = p->to;
@@ -297,6 +296,7 @@ BOOL OrgData::CutNote(long x,unsigned char y)
 		}
 		return TRUE;
 	}
+	FlagFinder(x, true);
 	return FALSE;
 }
 
@@ -746,7 +746,7 @@ BOOL OrgData::CutVolume(long x,unsigned char y)
 	return TRUE;
 }
 
-BOOL OrgData::SetFlag(long x, unsigned char y)
+char OrgData::SetFlag(long x, unsigned char y)
 {
 	NOTELIST* note;//生成NOTE
 	NOTELIST* p;//リストを指すポインター
@@ -754,7 +754,7 @@ BOOL OrgData::SetFlag(long x, unsigned char y)
 	OrgFlagX[i - 1] = x;
 	for (char j = 0; j < ALLOCFLAG; j++)
 	{
-		if (OrgFlagX[j] == x && OrgFlag[FlagFinder(x,false)][1] != org_data.track) return FALSE;
+		if (OrgFlagX[j] == x && OrgFlag[FlagFinder(x,false)][1] != org_data.track) return 2;
 	}
 	//未使用NOTEを検索
 	if ((note = SearchNote(info.tdata[track].note_p)) == NULL)return FALSE;
@@ -914,7 +914,7 @@ bool OrgData::GetFlagUsed(bool add)
 		lf--;
 		uf++;
 	}
-	else if (lf == 0 || (add == false && lf > 31))
+	if (lf == 0 || (add == false && lf > 31))
 	{
 		return false;
 	}

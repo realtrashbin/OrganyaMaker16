@@ -38,7 +38,7 @@ extern HBITMAP waveBmp; // azy
 
 extern long uf, lf;
 
-extern unsigned short OrgFlag[ALLOCFLAG][5];
+extern signed short OrgFlag[ALLOCFLAG][5];
 extern unsigned short OrgFlagUndo[ALLOCFLAG][3];
 extern char OrgFlagDlg;
 
@@ -1876,7 +1876,10 @@ BOOL CALLBACK DialogFlags(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 							{
 								OrgFlag[i][3] = 1;
 							}
-							else if (org_data.track >= MAXMELODY && IsDlgButtonChecked(hdwnd, IDC_FPIPI) == TRUE)MessageBox(hWnd, "Pipi does not apply to Drams.", "Flag(Warning)", MB_OK);
+							else if (org_data.track >= MAXMELODY && IsDlgButtonChecked(hdwnd, IDC_FPIPI) == TRUE) {
+								MessageBox(hWnd, "Pipi does not apply to Drams.", "Flag(Warning)", MB_OK);
+								return TRUE;
+							}
 						}
 						else
 						{
@@ -1905,7 +1908,9 @@ BOOL CALLBACK DialogFlags(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam
 					{
 						OrgFlag[OrgFlagDlg][3] = 1;
 					}
-					else if (org_data.track >= MAXMELODY && IsDlgButtonChecked(hdwnd, IDC_FPIPI) == TRUE)MessageBox(hWnd, "Pipi does not apply to Drams.", "Flag(Warning)", MB_OK);
+					else if (org_data.track >= MAXMELODY && IsDlgButtonChecked(hdwnd, IDC_FPIPI) == TRUE) {
+						MessageBox(hWnd, "Pipi does not apply to Drams.", "Flag(Warning)", MB_OK); return TRUE;
+					}
 				}
 				else
 				{

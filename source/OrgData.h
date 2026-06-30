@@ -45,7 +45,7 @@ typedef struct MUSICINFO{
 	unsigned short alloc_note;//number of reserved notes
 	long repeat_x;//リピート
 	long end_x;//曲の終わり(リピートに戻る)
-	TRACKDATA tdata[MAXTRACK];
+	TRACKDATA tdata[32];
 }MUSICINFO;
 //メインクラス。このアプリケーションの中心。（クラスってやつを初めて使う）
 typedef struct OrgData{
@@ -94,7 +94,7 @@ typedef struct OrgData{
 		BOOL SetVolume(long x,unsigned char y);//ボリューム音符を配置
 		BOOL SetVolume2(long x,unsigned char y,long fade); //フェードアウト	// 2010.08.17 A
 		BOOL CutVolume(long x,unsigned char y);//ボリューム音符のカット
-		BOOL SetFlag(long x, unsigned char y);
+		char SetFlag(long x, unsigned char y);
 		BOOL CutFlag(long x, unsigned char y);
 		BOOL EnlargeAllNotes(int Power);//[新]音符をPower倍に引き伸ばす
 		BOOL ShortenAllNotes(int Power);//[新]音符を1/Power倍に縮こめる

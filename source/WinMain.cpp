@@ -1428,7 +1428,6 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam)
 			break;
 		case VK_F5:
 		case ID_AC_SPACE:
-			MessageBox(hWnd, "TEST", "TEST", MB_OK);
 			if (timer_sw == 0)SendMessage(hDlgPlayer, WM_COMMAND, IDC_PLAY, NULL);
 			else SendMessage(hDlgPlayer, WM_COMMAND, IDC_STOP, NULL);
 			break;

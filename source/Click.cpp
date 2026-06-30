@@ -42,8 +42,8 @@ void ShowStatusMessage(void);
 extern void ChangeTrack(HWND hdwnd, int iTrack);
 extern void SetTitlebarText();
 extern void TitlebarRefresh();
-extern long OrgFlagX[ALLOCFLAG];
-extern unsigned short OrgFlag[ALLOCFLAG][5];
+extern signed long OrgFlagX[ALLOCFLAG];
+extern signed short OrgFlag[ALLOCFLAG][5];
 char OrgFlagDlg;
 
 int iDragMode = 0;	//ÄŞ×¯¸Ş‚Å‰¹•„‚ğL‚Î‚·
@@ -419,12 +419,13 @@ void ClickProcL(WPARAM wParam, LPARAM lParam)
 		if (FlagR == true && org_data.GetFlagUsed(true) == true)
 		{
 			if ((mouse_x != Last_mouse_x) || (mouse_y != Last_mouse_y))SetUndo();
-			if (org_data.SetFlag(mouse_x, (unsigned char)mouse_y) == FALSE) MessageBox(hWnd, "There's already a flag there!", "Flag(Error)", MB_OK);
+			if (org_data.SetFlag(mouse_x, (unsigned char)mouse_y) == 2) MessageBox(hWnd, "There's already a flag there!", "Flag(Error)", MB_OK);
 		}
 		else if (org_data.GetFlagUsed(true) == false)
 		{
 			MessageBox(hWnd, "Try removing some flags!", "Flag(Error)", MB_OK);
 		}
+		else if (FlagR == false) org_data.GetFlagUsed(false);
 		ClearDrag();
 	}
 	else if(mouse_y >= 15 && mouse_y < WHeight+288-WHNM){//Note grid
@@ -536,6 +537,7 @@ void ClickProcR(WPARAM wParam, LPARAM lParam)
 		if (org_data.CutFlag(mouse_x, (unsigned char)mouse_y) == FALSE)ResetLastUndo();
 		org_data.GetFlagUsed(false);
 		ClearDrag();
+		TitlebarRefresh();
 	}
 	else if(mouse_y >= 15 && mouse_y < WHeight+288-WHNM){
 		//æ“¾‚µ‚½À•W‚ğŠy•ˆÀ•W‚É•ÏŠ·
